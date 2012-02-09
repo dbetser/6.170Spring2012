@@ -1,0 +1,13 @@
+Welcome to your 6.170 git repo! To give you a better sense of what's going on, here's a brief rundown:
+
+There are 4 branches set up in the repository (described below), but you only really need to worry about 2 of them. But of course, you're more than welcome to create your own as you see fit!
+
+If you ever want to "visit" one of the other branches (or any branch, for that matter), you can use git checkout BRANCHNAME. If you want to see all available branches, use git branch -a. The astrick will let you know what branch you're currently in, if you get lost.
+
+The 4 branches that come with the repository are:
+*dev: This is your development branch, which you can use for everyday development as you work on your assignments. Doing a "git push origin" in this branch will save your work back to the csail server, as a backup or for sharing code with groupmates for a project or a TA for help.
+*submit: Use this branch for when you want to push your code to the server. For example, you must run "git push origin dev:submit" to push your code to the submit branch. This will also automagically launch your code on the testing website, and will be the codebase that we grade from.
+*deploy_only: If you already submitted code for grading, but want to keep working on it and deploy new versions, this branch allows you to hook into the deploy functionality without messing up your graded version. We like to be able to view your running website, so please leave up the submitted version until we grade the assignment, and then you can go back and deploy new ones.
+*master: We don't make use of this branch, but git gets cranky if we don't have it. In the Real World, people typically treat the master branch as the "live in production" version, so you work on a feature, get it approved, and then submit it to the master branch for inclusion, sort of like our submit branch. But we think calling it "submit" is a little more intuitive.
+
+Feel free to create any new branches as well! Use git however you like, and find out the code flow that works best for you. Just don't forget to push to :submit by the deadline!
