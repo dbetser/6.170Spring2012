@@ -1,8 +1,0 @@
-SSLOptions +stdEnvVars
-SSLCACertificateFile /etc/ssl/certs/mit-client.pem
-SSLVerifyClient require
-
-SSLRequire %{SSL_CLIENT_S_DN_Email} == "brettcvz@MIT.EDU" || 
-    %{SSL_CLIENT_S_DN_Email} in {"dnj@MIT.edu","karger@MIT.EDU","alex_mil@MIT.EDU","prashanw@MIT.EDU","brettcvz@MIT.EDU"}
-
-AuthType SSLCert
