@@ -1,27 +1,41 @@
 # Copyright 2012 Dina Betser.
 # Photo gallery main file for 6.170 Assignment #1.
+# Usage: photo_gallery.py <image_directory> <output_filename>
+#                         <comma-separated list of metadata fields.>
+
 import os
+import string
+import sys
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 
 from iptcinfo import IPTCInfo
 
-class ImagePathCaption(object):
-  """Struct-like object to store an image's path and caption."""
+class ImageDataObject(object):
+  """Struct-like object to store all information needed to display an image."""
 
-  def __init__(self, image_path, caption):
+  def __init__(self, image_path, caption, prev_path, next_path):
     self.path = image_path
     self.caption = caption
+    self.prev = prev_path
+    self.next = next_path
+
+  def __repr__(self):
+    return ('Path: ' + self.path + ';\nCaption: ' + self.caption
+            + ';\nPrev: ' + self.prev + ';\nNext: ' + self.next)
 
 
 class PhotoGalleryManager(object):
   """Manages the photo gallery application."""
+
   def __init__(self, image_directory, metadata_fields):
-    """
-    
+    """Constructor for the PhotoGalleryManager object.
+
     Args:
       image_directory: directory containing images (with last slash included).
+      metadata_fields: list of field names for which to retrieve the images'
+        values.
     """
     self.dir = image_directory
     self.meta_fields = metadata_fields
@@ -29,15 +43,19 @@ class PhotoGalleryManager(object):
     self.SetImageObjects()
 
   def SetImageObjects(self):
-    """"""
+    """Generate all of the image objects; store them in the class variable."""
     dir_list = os.listdir(self.dir)
-    print self.dir
-    print dir_list
-    for fname in dir_list:
-      self.image_objs.append(ImagePathCaption(
-          self.dir + fname, self.LoadIptcDataForFile(self.dir + fname)))
+    for file_index in range(len(dir_list)):
+      self.image_objs.append(ImageDataObject(
+          self.dir + dir_list[file_index],
+          self.LoadIptcDataForFile(self.dir + dir_list[file_index]),
+          dir_list[(file_index - 1) % len(dir_list)],
+          dir_list[(file_index + 1) % len(dir_list)]
+      ))
 
   def GetImageObjects(self):
+    for obj in self.image_objs:
+      print obj
     return self.image_objs
 
   def LoadIptcDataForFile(self, filename):
@@ -55,10 +73,9 @@ class PhotoGalleryManager(object):
     for field in self.meta_fields:
       print field, info.data[field]
       if info.data[field] is not None:
-        caption += 'Field name: ' + field + '; Value: ' + info.data[field] + '\n'
+        caption += field + ': ' + info.data[field] + '.'
       else:
-        print 'caption could not be read.'
-    print caption
+        print 'Caption could not be created for field ' + field
     return caption
 
   def SetNewMetadataFields(self, metadata_fields):
@@ -69,16 +86,33 @@ class PhotoGalleryManager(object):
     """
     self.meta_fields = metadata_fields
 
+class JinjaBridge(object):
 
-if __name__ == "__main__":
-  # TODO(dbetser): Parse command-line args.
-  env = Environment(loader=FileSystemLoader('templates'))
-  template = env.get_template('photo_gallery.html')
+	def __init__(self, input_file, output_file, image_dir, metadata_fields):
+	  self.input_file = input_file
+	  self.output_file = output_file
+	  self.pgm = PhotoGalleryManager(image_dir, metadata_fields)
+
+  def InitEnvironment(self):
   
-  pgm = PhotoGalleryManager('images/', ['caption/abstract'])
-  images = pgm.GetImageObjects()
+    env = Environment(loader=FileSystemLoader('templates'))
+    template = env.get_template(self.input_file)
+    
+    images = self.pgm.GetImageObjects()
+  
+    filestring = template.render(image_objs=images)
+    website_file = open(self.output_filename, 'w')
+    website_file.write(filestring)
+    website_file.close()
 
-  filestring = template.render(name='frango', image_objs=images)
-  website_file = open('website.html', 'w')
-  website_file.write(filestring)
-  website_file.close()
+if __name__ == '__main__':
+  # Parse command-line args.
+  if len(sys.argv) < 5:
+    print ('Correct usage: photo_gallery.py <image_directory> <output_filename> '
+           '<comma-separated list of metadata fields> <input_filename>')
+  else:
+    image_dir = sys.argv[1]
+    metadata_fields = string.split(sys.argv[3], ',')
+    output_filename = sys.argv[2]
+    input_filename = sys.argv[4]
+
