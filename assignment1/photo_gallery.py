@@ -1,4 +1,5 @@
 # Copyright 2012 Dina Betser.
+# Photo gallery main file for 6.170 Assignment #1.
 import os
 
 from jinja2 import Environment
@@ -70,6 +71,7 @@ class PhotoGalleryManager(object):
 
 
 if __name__ == "__main__":
+  # TODO(dbetser): Parse command-line args.
   env = Environment(loader=FileSystemLoader('templates'))
   template = env.get_template('photo_gallery.html')
   

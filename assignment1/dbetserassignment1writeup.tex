@@ -1,0 +1,139 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{capt-of}
+
+\setlength{\parskip}{1pc}
+\setlength{\parindent}{0pt}
+\setlength{\topmargin}{-3pc}
+\setlength{\textheight}{9.0in}
+\setlength{\oddsidemargin}{0pc}
+\setlength{\evensidemargin}{0pc}
+\setlength{\textwidth}{6.5in}
+
+\title{6.005  GUI Chat Deliverable 1}
+\author{Team 27: Dina Betser, Peter Iannucci, and Steve Levine}
+
+
+\begin{document}
+\maketitle
+
+
+\section{Team Contract}
+Please see the following file in our repository: \texttt{teambuildinglab.txt}.
+
+
+\section{Abstract Design}
+\subsection{Overview}
+\begin{center}
+%%\includegraphics[width=400pt]{../dot/OM.pdf} 
+\end{center}
+
+{\bf Definition of a conversation}\\
+A conversation is a set of listeners and a set of date-stamped messages. It also includes a set of listeners invited but not yet included in the conversation.  There is no state associated with a conversation other than its set of members.  We are choosing to implement the IRC style of chatroom where there is no difference in the type of conversation (i.e. 2-person chat vs. chatroom) based on the number of members involved, which seemed more practical than chat between just two people. 
+
+{\bf Beginning a conversation}\\
+An attempt is made by a user on the client-side to open a new conversation.  The request tells the server that the user wishes to begin the conversation. Once the conversation is open, this user can send messages within the conversation. The user can also send conversation invites to a buddy. If the buddy accepts the invitation, the server responds by adding the desired member to the conversation. 
+
+{\bf Closing a conversation}\\
+At any time, a user may choose to leave a conversation. When all of the members within a conversation have left the conversation, the conversation is ended in the server.  We are creating a ``Notify Me'' feature such that if a user leaves her computer without designating that she wants to terminate her current
+conversation, messages sent to that conversation will be forwarded to the user via email.
+
+{\bf Actions available to a user}
+\begin{itemize}\item Add another user to buddy list or remove a buddy from the list
+\item Manage groups of buddies. (possible extension)
+\item Accept a chat invitation from another user.
+\item Open a new conversation.
+\item Send a chat invitation from within a conversation.
+\item Send a message within a conversation.
+\item Leave a conversation.
+\item Set status to Away, with an optional away message to be immediately posted to all joined conversations.  Optionally forward
+messages to email.
+\item Close the program.  (go offline)
+\end{itemize}
+
+We are also considering a variety of extensions that we will implement if we have more time towards the end end of the project time window, that can make our project more relevant and useful.
+\begin{itemize}
+\item Latex integration
+\item Whiteboard
+\item Posting file attachments to a conversation
+\end{itemize}
+
+\subsection{Client}
+Maintains the following state:\newline
+Current status
+\begin{itemize}
+\item Available -- Messages and invitations will delivered to the client immediately.  
+\item Away -- Messages will be delivered to the client immediately, away messages will be posted, and the user may receive emailed
+notifications of messages if they so choose.  Invitations will be either delivered or automatically accepted as the user chooses.
+\item Offline -- The user cannot communicate with other members in the network.
+\end{itemize}
+List of conversations joined\newline
+List of conversation invitations\newline
+List of buddies\newline
+List of buddy invitations
+
+\subsection{Server}
+Maintains the following state:\newline
+List of users\newline
+Current status of each user\newline
+Buddy relationships\newline
+Pending buddy invitations\newline
+Notification email address (or null) for each away user\newline
+List of conversations (and their membership and invite list)
+
+\section{Client/Server Protocol}
+For simplicity, we decided to build our protocol on top of Java object serialization.  This will also allow us to send a wider variety of objects between client and server, as opposed to a text-based protocol (such as one that uses XML) which would be limited to sending text-based messages.  Objects at one end are passed to an
+ObjectOutputStream wrapped around a socket to transmit, and they are read from an ObjectInputStream wrapped around the other end of the
+socket.  Each message inherits from the \texttt{Message} class, which provides a method for carrying out the intent of the message (rather
+than having the message processor recognize message types).  Thus, the active messages are handled by a passive dispatcher.  This design
+pattern promotes well-organized code.
+
+We will have \texttt{Message} subclasses corresponding to all of the actions available to a user, as well as relevant changes of state, e.g.
+\begin{itemize}
+\item Changing status (Offline, Online, Away)
+\item Sending/receiving messages
+\item Notification of a buddy request
+\item Notification of buddy status changes
+\end{itemize}
+and so forth.
+
+
+State machine diagram for our client:
+\begin{center}
+%%\includegraphics[scale=0.6]{../dot/ClientStateMachine.pdf} 
+\end{center}
+
+State machine diagram for our server:
+\begin{center}
+%%\includegraphics[scale=0.6]{../dot/ServerStateMachine.pdf} 
+\end{center}
+
+\section{Usability/GUI Design}
+
+
+{\bf Buddy List Window}\\
+This will be the unifying user interface component.  It lists all of a particular member's buddies along with their accompanying status.
+Selecting a buddy name and clicking on buttons within the pane will allow the user to communicate with the desired members or remove them
+from the list.  Functions/buttons:
+\begin{itemize}
+\item Add another user to buddy list (or remove an existing buddy) 
+\item Open a new conversation
+\item Change status to Away
+\item Log out (close window)
+\item Add or remove groups and add or remove buddies from those groups (possible extension)
+\end{itemize}
+
+{\bf Conversation Window}\\
+We will visually separate messages of different conversations into distinct windows within our GUI.  Every conversation window will have the following buttons/options:\begin{itemize}
+\item Invite another member to chat within the conversation
+\item Send a message within the conversation
+\item Leave conversation (close window)
+\end{itemize}
+
+
+\end{document}
+
