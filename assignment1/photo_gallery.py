@@ -86,22 +86,29 @@ class PhotoGalleryManager(object):
     """
     self.meta_fields = metadata_fields
 
-class JinjaBridge(object):
+class JinjaAdapter(object):
+  """Wrapper for Jinja library methods. Injects values into HTML templates."""
 
-	def __init__(self, input_file, output_file, image_dir, metadata_fields):
-	  self.input_file = input_file
-	  self.output_file = output_file
-	  self.pgm = PhotoGalleryManager(image_dir, metadata_fields)
+  def __init__(self, input_file, output_file, image_dir, metadata_fields):
+    self.input_file = input_file
+    self.output_file = output_file
+    self.pgm = PhotoGalleryManager(image_dir, metadata_fields)
+    self.InitEnvironment()
 
   def InitEnvironment(self):
-  
-    env = Environment(loader=FileSystemLoader('templates'))
-    template = env.get_template(self.input_file)
+    """Initializes the Jinja environment."""
+    env = Environment(loader=FileSystemLoader('.'))
+    self.template = env.get_template(self.input_file)
+
+  def OutputHtml(self):
+    """Inject the image data into the HTML template.
     
+    Results are written to the output_file specified in the member variable.
+    """
     images = self.pgm.GetImageObjects()
   
-    filestring = template.render(image_objs=images)
-    website_file = open(self.output_filename, 'w')
+    filestring = self.template.render(image_objs=images)
+    website_file = open(self.output_file, 'w')
     website_file.write(filestring)
     website_file.close()
 
@@ -115,4 +122,6 @@ if __name__ == '__main__':
     metadata_fields = string.split(sys.argv[3], ',')
     output_filename = sys.argv[2]
     input_filename = sys.argv[4]
-
+    adapter = JinjaAdapter(input_filename, output_filename, image_dir,
+                           metadata_fields)
+    adapter.OutputHtml()
