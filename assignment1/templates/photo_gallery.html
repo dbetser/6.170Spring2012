@@ -1,0 +1,12 @@
+<html>
+  <head>
+    <title> Photo Gallery </title>
+  </head>
+  <body>
+    {% for image_obj in image_objs %}
+      <img src="{{ image_obj.path }}" alt="{{ image_obj.caption }}" title="{{ image_obj.caption }}"/>
+    {% endfor %}
+
+    {{ name }}
+  </body>
+</html>
