@@ -1,0 +1,33 @@
+/* Photo Gallery CSS Template. Copyright 2012 Dina Betser */
+/* ================================================================ 
+This copyright notice must be untouched at all times.
+
+The original version of this stylesheet and the associated (x)html
+is available at http://www.cssplay.co.uk/menu/click-gallery-previous-next.html
+Copyright (c) 2005-2009 Stu Nicholls. All rights reserved.
+This stylesheet and the associated (x)html may be modified in any 
+way to fit your requirements.
+=================================================================== */
+#gallery {
+	width:640px;
+	height:750px;
+	margin:0 auto;
+	position:relative;
+	font-family:verdana, arial, sans-serif;
+}
+#gallery a.previous {display:block; height:40px; width:36px; background:url(click/previous.gif); position:absolute; left:0; top:560px;}
+#gallery a.next {display:block; height:40px; width:36px; background:url(click/next.gif); position:absolute; right:0; top:560px;}
+#gallery a b {display:none;}
+#gallery #fullsize {
+	position:absolute;
+	left:0;
+	top:0;
+	height:800px;
+	width:640px;
+	overflow:hidden;
+	text-align:center;
+}
+#gallery #fullsize div {width:640px; height:900px; padding-top:10px; position:relative;}
+#gallery #fullsize div img {clear:both; display:block; margin:0 auto; border:0;}
+#gallery #fullsize div h3 {padding:10px 0 0 0; margin:0; font-size:18px;}
+#gallery #fullsize div p {padding:5px 0; margin:0; font-size:12px; line-height:18px;}

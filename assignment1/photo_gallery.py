@@ -15,11 +15,12 @@ from iptcinfo import IPTCInfo
 class ImageDataObject(object):
   """Struct-like object to store all information needed to display an image."""
 
-  def __init__(self, image_path, caption, prev_path, next_path):
+  def __init__(self, image_path, caption, prev_path, next_path, id):
     self.path = image_path
     self.caption = caption
     self.prev = prev_path
     self.next = next_path
+    self.id = id
 
   def __repr__(self):
     return ('Path: ' + self.path + ';\nCaption: ' + self.caption
@@ -42,6 +43,9 @@ class PhotoGalleryManager(object):
     self.image_objs = []
     self.SetImageObjects()
 
+  def GenerateIdFromPath(self, path):
+    return string.split(path, '.')[0]
+
   def SetImageObjects(self):
     """Generate all of the image objects; store them in the class variable."""
     dir_list = os.listdir(self.dir)
@@ -49,8 +53,9 @@ class PhotoGalleryManager(object):
       self.image_objs.append(ImageDataObject(
           self.dir + dir_list[file_index],
           self.LoadIptcDataForFile(self.dir + dir_list[file_index]),
-          dir_list[(file_index - 1) % len(dir_list)],
-          dir_list[(file_index + 1) % len(dir_list)]
+          self.GenerateIdFromPath(dir_list[(file_index - 1) % len(dir_list)]),
+          self.GenerateIdFromPath(dir_list[(file_index + 1) % len(dir_list)]),
+          self.GenerateIdFromPath(dir_list[file_index])
       ))
 
   def GetImageObjects(self):

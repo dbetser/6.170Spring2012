@@ -4,12 +4,21 @@
     <title> Photo Gallery </title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="Author" content="Dina Betser, dbetser@mit.edu">
+    <link rel="stylesheet" media="all" type="text/css" href="photo_gallery.css" />
   </head>
   <body>
-    {% for image_obj in image_objs %}
-      <span class="image"> <img src="{{ image_obj.path }}" alt="{{ image_obj.path }}"
-        title="{{ image_obj.path }}"/> </span>
-      <span class="caption"> {{ image_obj.caption }} </span>
-    {% endfor %}
+    <div id="gallery">
+	  <div id="fullsize">
+        {% for image_obj in image_objs %}
+          <div id="{{ image_obj.id }}">
+            <img src="{{ image_obj.path }}" alt="{{ image_obj.id }}"
+                 title="{{ image_obj.id }}"/>
+            <a class="previous" href="#{{ image_obj.prev }}">Previous</a>
+            <a class="next" href="#{{ image_obj.next }}">Next</a>
+            <span class="caption"> {{ image_obj.caption }} </span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
   </body>
 </html>
