@@ -1,4 +1,5 @@
 /* Photo Gallery CSS Template. Copyright 2012 Dina Betser */
+
 /* ================================================================ 
 This copyright notice must be untouched at all times.
 
@@ -15,8 +16,8 @@ way to fit your requirements.
 	position:relative;
 	font-family:verdana, arial, sans-serif;
 }
-#gallery a.previous {display:block; height:40px; width:36px; background:url(click/previous.gif); position:absolute; left:0; top:560px;}
-#gallery a.next {display:block; height:40px; width:36px; background:url(click/next.gif); position:absolute; right:0; top:560px;}
+#gallery a.previous {display:block; height:40px; width:65px; background:url(click/previous.gif); position:absolute; left:0; top:560px;}
+#gallery a.next {display:block; height:40px; width:65px; background:url(click/next.gif); position:absolute; right:0; top:560px;}
 #gallery a b {display:none;}
 #gallery #fullsize {
 	position:absolute;
