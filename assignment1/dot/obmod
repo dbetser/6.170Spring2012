@@ -1,0 +1,15 @@
+digraph ProblemOM {
+
+node [shape=box] Gallery;
+node [shape=box] Directory;
+node [shape=box] Photo;
+node [shape=box] Caption;
+node [shape=box] "IPTC Info Element";
+
+Gallery -> Directory [label="presents", headlabel="!"];
+Directory -> Photo [label="photo", headlabel="*"];
+Photo -> Caption [label="caption", headlabel="!"];
+Photo -> Photo [label="next, previous", taillabel="!", headlabel="!"];
+Caption -> "IPTC Info Element" [label="metadata_field", headlabel="*"];
+
+};
