@@ -95,7 +95,7 @@ class PhotoGalleryManager(object):
     """
     self.meta_fields = metadata_fields
 
-class JinjaAdapter(object):
+class JinjaWrapper(object):
   """Wrapper for Jinja library methods. Injects values into HTML templates."""
 
   def __init__(self, input_file, output_file, image_dir, metadata_fields):
@@ -131,6 +131,6 @@ if __name__ == '__main__':
     metadata_fields = string.split(sys.argv[3], ',')
     output_filename = sys.argv[2]
     input_filename = sys.argv[4]
-    adapter = JinjaAdapter(input_filename, output_filename, image_dir,
+    wrapper = JinjaWrapper(input_filename, output_filename, image_dir,
                            metadata_fields)
-    adapter.OutputHtml()
+    wrapper.OutputHtml()
