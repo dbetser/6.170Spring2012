@@ -52,7 +52,7 @@ A \texttt{Credit} is defined as some form of knowledge that satisfies a given pr
 
 \item Object Model\\
 \begin{center}
-\includegraphics[width=200pt]{dot/b1.png}
+\includegraphics[width=300pt]{dot/b1.png}
 \label{fig:ob1} 
 \end{center}
 \end{enumerate}
@@ -160,15 +160,20 @@ Part 1:
 \end{center}
 
 Part 2:
-The extension is to include a new character (in this case, an @ symbol) where
+The extension is to include a new character (in this case, an @ symbol) where the subsets attached to an inheritance arrow are exhaustive.
 
-There are pros and cons to specifying exhaustive sets in this manner. The plus side is that an exhaustive relation should really be designed in the relation itself, not in the set that is being subset. However, adding this to the notation adds another layer of complexity which may not necessarily be a good idea. The current object modeling schematic makes the design decision to leave such notation out, and as such it gains in simplicity what it might have lost in expressiveness. These types of design decisions must be made, and given the not-so-frequent cases that 
+The new version of the object model is below in Figure \ref{fig:ob8}.
 
-In the diagram below, the only exhaustive relation is the symbols that subclass the Multiplicity entity, so as such, an @ symbol is attached to the open arrowhead.
 \begin{center}
 \includegraphics[width=400pt]{dot/metamodeling2.png}
 \label{fig:ob8} 
 \end{center}
+
+In the diagram in Figure \ref{fig:ob8}, the only exhaustive relation is the symbols that subclass the Multiplicity entity, so as such, an @ symbol is attached to the open arrowhead.
+
+There are pros and cons to specifying exhaustive sets in this manner. The plus side is that an exhaustive relation should really be designed in the relation itself, not in the set that is being subset. However, adding this to the notation adds another layer of complexity which may not necessarily be a good idea. The current object modeling schematic makes the design decision to leave such notation out, and as such it gains in simplicity what it might have lost in expressiveness. These types of design decisions must be made, and given the not-so-frequent cases that 
+
+
 \end{enumerate}
 
 \end{document}
