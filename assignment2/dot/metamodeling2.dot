@@ -1,0 +1,29 @@
+digraph autocomplete {
+
+node [shape=box] Set;
+djt [shape=box, label="Disjoint Tree"];
+exh [shape=box, label="Exhaustive Subset (@)"];
+node [shape=point] joiner1;
+plus [shape=box, label="+"];
+bang [shape=box, label="!"];
+ques [shape=box, label="?"];
+star [shape=box, label="*"];
+abst [shape=box, label="Abstract Set"];
+singleton [shape=box, label="Singleton Set"];
+node [shape=box] Relation;
+node [shape=box] Multiplicity;
+
+plus->joiner1 [arrowhead="none"];
+bang->joiner1 [arrowhead="none"];
+star->joiner1 [arrowhead="none"];
+ques->joiner1 [arrowhead="none"];
+joiner1->Multiplicity [arrowhead="onormal", headlabel="@"];
+singleton->Set [arrowhead="onormal"];
+abst->Set [arrowhead="onormal"];
+Relation -> Set [label="source, sink" headlabel="!"];
+Relation -> Multiplicity [label="head, tail" headlabel="!"];
+Set->Multiplicity [label="mult" headlabel="!"];
+Set -> djt [label="subset"];
+exh -> djt [arrowhead="onormal"];
+
+};

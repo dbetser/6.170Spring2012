@@ -1,0 +1,20 @@
+digraph B4 {
+
+node [shape=box] Interface;
+node [shape=box] Class;
+node [shape=box] Variable;
+node [shape=box] Type;
+node [shape=box] Object;
+node [shape=point] joiner;
+
+Class -> Class [label="extends", headlabel="?"];
+Class -> Interface [label="implements", headlabel="*"];
+Interface -> Interface [label="extends", headlabel="*"];
+Class -> Variable [label="contains", headlabel="*"];
+Interface -> joiner [arrowhead="none"];
+Class -> joiner [arrowhead="none"];
+joiner -> Type [arrowhead="onormal"];
+Variable -> Object [label="dynamic type", headlabel="!"];
+Variable -> Type [label="static type", headlabel="!"];
+Object-> Class [label="instantiates", headlabel="!"];
+};

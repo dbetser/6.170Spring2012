@@ -1,0 +1,15 @@
+digraph B3 {
+
+node [shape=box] Ballot;
+node [shape=box] Office;
+node [shape=box] Candidate;
+node [shape=box] Selection;
+node [shape=box] Voter;
+
+Voter -> Ballot [label="casts", headlalbel="!"];
+Ballot -> Office [label="office", headlalbel="+"];
+Voter -> Selection [label="makes", headlalbel="*"];
+Selection -> Candidate [label="specifies", headlalbel="!"];
+Selection -> Office [label="specifies", headlabel="!"];
+Office -> Candidate [label="running", headlabel="+"];
+};

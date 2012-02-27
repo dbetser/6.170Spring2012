@@ -1,0 +1,31 @@
+digraph autocomplete {
+
+node [shape=box] Callback;
+node [shape=point] joiner;
+node [shape=point] joiner1;
+ai [shape=box, label="Autocomplete Instance"];
+sopt [shape=box, label="Source Option"];
+resset [shape=box, label="Result Set"];
+localdataarr [shape=box, label="Array With Local Data"];
+urlstr [shape=box, label="String with URL"];
+node [shape=box] Label;
+node [shape=box] Value;
+starr [shape=box, label="Array of Strings"];
+objarr [shape=box, label="Array of Objects"];
+st [shape=box, label="Search Term"];
+
+ai->st [label="contains", headlabel="?"];
+ai->sopt [label="calls", headlabel="!"];
+Callback ->joiner [arrowhead="none"];
+urlstr->joiner [arrowhead="none"];
+localdataarr->joiner [arrowhead="none"];
+joiner->sopt [arrowhead="onormal"];
+sopt->resset [label="generates"];
+starr->joiner1 [arrowhead="none"];
+objarr->joiner1 [arrowhead="none"];
+joiner1->resset [arrowhead="onormal"];
+objarr->Value [label="stores"];
+objarr->Label [label="stores"];
+starr->Label [label="stores"];
+ai->Label [label="displays"];
+};

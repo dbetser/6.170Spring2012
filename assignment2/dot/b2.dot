@@ -1,0 +1,28 @@
+digraph B1 {
+
+node [shape=box] Street;
+node [shape=box] Direction;
+node [shape=point] joiner;
+node [shape=point] joiner1;
+node [shape=point] joiner2;
+dh [shape=box, label="Divided"];
+uh [shape=box, label="Undivided"];
+ow [shape=box, label="One-Way"];
+tw [shape=box, label="Two-Way"];
+node [shape=box] Named;
+node [shape=box, fontname="Palatino-Italic"] Highway;
+
+Street->Direction [label="direction", headlabel="!"];
+Direction -> Street [label="accessible"];
+joiner -> Street [arrowhead="onormal"];
+Named -> joiner [arrowhead="none"];
+Highway -> joiner [arrowhead="none"];
+ow ->joiner1 [arrowhead="none"];
+tw ->joiner1 [arrowhead="none"];
+uh -> joiner2 [arrowhead="none"];
+dh -> joiner2 [arrowhead="none"];
+joiner2->Highway [arrowhead="onormal"];
+joiner1 -> Named [arrowhead="onormal"];
+Highway->Street [label="ramp"];
+Named->Named [label="intersects"];
+};

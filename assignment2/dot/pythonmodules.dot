@@ -1,0 +1,36 @@
+digraph B1 {
+
+node [shape=box] Module;
+node [shape=point] joiner;
+node [shape=point] joiner1;
+is [shape=box, label="Import Statements"];
+fromim [shape=box, label="from mod import *"];
+impm [shape=box, label="import mod"];
+varname [shape=box, label="Variable Name"];
+modname [shape=box, label="Module Name"];
+node [shape=box] Directory;
+node [shape=box] File;
+node [shape=box] Object;
+node [shape=box] Name;
+node [shape=box] Entry;
+pp [shape=circle, label="Python Path"];
+st [shape=box, label="Symbol Table"];
+
+st->Entry [label="object"];
+Entry -> Object [label="object", headlabel="!"];
+Entry -> Name [label="entry name", headlabel="!"];
+modname->joiner [arrowhead="none"];
+varname->joiner [arrowhead="none"];
+joiner->Name [arrowhead="onormal"];
+Module->modname [label="module_name", headlabel="!"];
+modname->File[label="file", headlabel="+"];
+Directory->File[label="contains"];
+Module->is [label="declares"];
+impm->modname[label="imports", headlabel="!"];
+fromim->modname[label="imports"];
+Module->Directory[label="path", headlabel="!"];
+pp->Directory[headlabel="+"];
+impm->joiner1 [arrowhead="none"];
+fromim->joiner1 [arrowhead="none"];
+joiner1->is [arrowhead="onormal"];
+};
