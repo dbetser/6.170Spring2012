@@ -10,15 +10,15 @@
 </head>
 
 <body>
-<div class="board" id="board">
-</div>
 <div>
   Type of play: <select id="playType">
-    <option>Human vs. Human</option>
-    <option>Human vs. Computer</option>
-    <option>Computer vs. Computer</option>
+    <option value="human">Human vs. Human</option>
+    <option value="comp" selected="selected">Human vs. Computer</option>
   </select>
 </div>
+<div class="board" id="board">
+</div>
+
 <div class="outcome" id="outcome">
 </div>
 </body>
