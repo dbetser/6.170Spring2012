@@ -43,3 +43,7 @@
     height:40px;
 	content: url(circlelight.png);	
 }
+
+.currentlyClicked {
+	background-color: purple;
+}

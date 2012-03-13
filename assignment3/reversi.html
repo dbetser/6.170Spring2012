@@ -7,11 +7,28 @@
 	</script>
 	<script src="dbetser.util.js"></script>
 	<script src="reversi.js"></script>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+	<title>6.170 Assignment 3: Othello</title>
 </head>
 
 <body>
+<div> Score:
+Black: <span id="blackScore">2</span>
+White: <span id="whiteScore">2</span>
+</div>
+<div> Boxes Remaining: <span id="boxesRemaining">60</span>
+</div>
+<div> Turn: <span id="whichPlayer">Black</span>
+</div>
+<div id="buttons">
+  <button id="restart">Restart</button>
+  <button id="undo">Undo</button>
+  <button id="redo">Redo</button>
+  <button id="done">Submit</button>
+</div>
 <div>
-  Type of play: <select id="playType">
+  Type of play:
+  <select id="playType">
     <option value="human">Human vs. Human</option>
     <option value="comp" selected="selected">Human vs. Computer</option>
   </select>

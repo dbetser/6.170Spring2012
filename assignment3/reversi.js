@@ -1,8 +1,14 @@
-//
 // Reversi
 // Dina Betser, 6.170 Assignment 3.
+//
+// JavaScript file implementing the game Reversi/Othello.
+// Credit to http://www.onlinespiele-sammlung.de/othello/othello-reversi-games/
+// lemurcomputing for algorithm ideas.
 
 if (!window.console) console = {};
+
+// Global debug variable to control severity of log messages. 
+var debug = 1;
 
 //
 // Initialization after the page is loaded
@@ -10,7 +16,8 @@ if (!window.console) console = {};
 $(document).ready(function () {
     var boardDim = 8;
     var boardSize = boardDim * boardDim;
-    var outcome = { "draw":"It's a draw!", "win":"Player 1 wins!", "lose":"Player 2 wins!"};
+    var outcome = { "draw":"It's a draw!", "win":"Player 1 wins!",
+                    "lose":"Player 2 wins!"};
     // create elements
     var elements = Array.dim(boardSize).map(function () {
         // use jquery so that we have jq objects and not elements
@@ -21,21 +28,104 @@ $(document).ready(function () {
     });
 
     // create a new board
-    var board = new Board(boardSize);
+    var board = new Board(boardDim);
+
+    // Set player types/play mode.
+    var humanPlayer = board.getPlayer(1);
+    if (debug > 1) {
+        console.log($("#playType").val());
+    }
+    var computerPlayer;
+    var secondHumanPlayer;
+    if ($("#playType").val() === "comp") {
+        computerPlayer = humanPlayer.other;
+    } else if ($("#playType").val() === "human") { 
+        secondHumanPlayer = humanPlayer.other;
+        // TODO implement human vs human
+    } else {
+      alert("You must select a play mode.");
+    }
+
+    // Add click handlers for buttons.
+    $("#redo").click(function() {
+        alert("Handler for redo.click() called.");
+    });
+    $("#undo").click(function() {
+        alert("Handler for undo.click() called.");
+    });
+    $("#done").click(function() {
+        if (currentlyClickedBox === -1) {
+            alert("You must select a valid box before submitting!");
+        }
+        var e = elements[currentlyClickedBox];
+
+        // if the game is already complete, nothing to do
+        if (board.isGameOver(humanPlayer, displayOutcome)) return;
+        if (e.play(humanPlayer)) {
+            refresh();
+            if (board.isGameOver(humanPlayer, displayOutcome)) return;
+            board.setCurrentPlayer(board.getCurrentPlayer().other,
+                                   displayCurrentPlayer);
+
+            elements[board.pickPlayPosition(computerPlayer)]
+                .play(computerPlayer);
+            refresh();
+            board.isGameOver(computerPlayer, displayOutcome);
+        }                                   
+        // todo: move. if the computer is first to go, find the best move and play
+        if (computerPlayer === board.getPlayer(1)) {
+            elements[board.pickPlayPosition(computerPlayer)]
+                .play(computerPlayer);
+        }
+        currentlyClickedBox = -1;
+        refresh();
+        // Switch the current player.
+        board.setCurrentPlayer(board.getCurrentPlayer().other,
+                               displayCurrentPlayer);
+    });
+    $("#restart").click(function() { // Useful for both "restart" and "abort"
+        restart();
+    });
+    $('#playType').change(function() {
+        restart();
+    });
+    $(document).keypress(function(e){
+        if (e.which === 13){
+            $("#done").click();
+        }
+    });
+
+
+    var restart = function () {
+        board.initBoard();
+        refresh();
+    }
+
+    // Store which box is currently clicked in the UI so that when the move is
+    // submitted it can be referenced. -1 if no box is clicked.
+    var currentlyClickedBox = -1;
+
 
     // attach render methods to elements
-    elements.forEach(function (e) {
+    elements.forEach(function (e, idx) {
         e.render = function (player) {
-            if (player === board.getPlayer(1))
-                e.addClass("player1");
-            else if (player === board.getPlayer(2))
-                e.addClass("player2");
+            if (idx === currentlyClickedBox) {
+                e.addClass("currentlyClicked");
+            } else {
+                e.removeClass("player1 player2 currentlyClicked");
+                if (player === board.getPlayer(1))
+                    e.addClass("player1");
+                else if (player === board.getPlayer(2))
+                    e.addClass("player2");
+            }
         };      
     });
 
     // Refresh the playing board's view.
     var refresh = function () {
-      console.log("refreshing");
+      if (debug > 0) {
+          console.log("Refreshing view.");
+      }
       for (var idx = 0; idx < boardSize; idx++) {
         elements[idx].render(board.getPlayerForBox(idx));
       }
@@ -45,7 +135,6 @@ $(document).ready(function () {
     elements.forEach(function (e, i) {
         e.hover(
             function() {
-                console.log(i);
                 if (board.getCurrentPlayer() === board.getPlayer(1) &&
                     board.getPlayerForBox(i).toString() === "-")
                   e.addClass("player1");
@@ -69,7 +158,7 @@ $(document).ready(function () {
     // attach play methods to elements
     elements.forEach(function (e, position) {
         e.play = function (player) {    
-            if (board.play(player, position)) {
+            if (board.play(player, position, true, updateViewStats)) {
                 e.render(player);
                 return true;
             }
@@ -77,48 +166,46 @@ $(document).ready(function () {
         };
     });
 
+    // Update the player that is displayed in the UI.
+    var displayCurrentPlayer = function(player_idx) {
+        var player_str = player_idx === 1 ? "White" : "Black";
+        $("#whichPlayer").text(player_str);
+        if (debug > 0) {
+            console.log("displayCurrentPlayer called: ", player_str)
+        }
+    };
+
     // display the outcome of the game
     var displayOutcome = function(player, win) {
         if (win) 
-            $("#outcome").text((player === humanPlayer) ? outcome.lose : outcome.win);
+            $("#outcome").text(
+                (player === humanPlayer) ? outcome.lose : outcome.win);
         else
             $("#outcome").text(outcome.draw);       
+    };
+
+    // Update the game stats.
+    var updateViewStats = function(pOneBoxes, pTwoBoxes, boxesLeft) {
+		$("#blackScore").text(pOneBoxes);
+		$("#whiteScore").text(pTwoBoxes);
+		$("#boxesRemaining").text(boxesLeft);
     };
 
     // add listeners for the click event on each element
     // let the event handler call play on the element,
     // check if the game is over, and make the move of the 
-    // computer player
-    var humanPlayer = board.getPlayer(Math.round(Math.random()) + 1);
-    console.log($("playType").val());
-//    if ($("playType").val() === "comp") {
-        var computerPlayer = humanPlayer.other;
-        elements.forEach(function (e) {
-            e.click(function () {
-                // if the game is already complete, nothing to do
-                if (board.isGameOver(humanPlayer, displayOutcome)) return;
-                
-                if (e.play(humanPlayer)) {
-                    refresh();
-                    if (board.isGameOver(humanPlayer, displayOutcome)) return;
-    
-                    elements[board.pickPlayPosition(computerPlayer)].play(computerPlayer);
-                    refresh();
-                    board.isGameOver(computerPlayer, displayOutcome);
-                }                                   
-            });
+    // computer player TODO cleanup
+    elements.forEach(function (e, position) {
+        e.click(function () {
+            var player = board.getCurrentPlayer();
+            if (board.play(player, position, false, updateViewStats)) {
+                currentlyClickedBox = position;
+                refresh();
+            } else {
+                alert("You cannot play at this box");
+            }
         });
-        
-        // if the computer is first to go, find the best move and play
-        if (computerPlayer === board.getPlayer(1))
-            elements[board.pickPlayPosition(computerPlayer)].play(computerPlayer);
-            refresh();
-//    } else if ($("playType").val() === "human") { 
-//         // TODO implement human vs human
-//     } else {
-//       alert("You must select a play mode.");
-//     }
-        
+    });        
 
 });
 
@@ -139,9 +226,9 @@ var Board = function (boardDim) {
     var boardSize = boardDim * boardDim;
     var board = Array.dim(boardSize, NONE);
 
-    var player_two_boxes = 2;
-    var player_one_boxes = 2;
-    var boxes_remaining = 60;
+    var playerTwoBoxes = 2;
+    var playerOneBoxes = 2;
+    var boxesRemaining = 60;
 
 
     // The current player of the game.
@@ -151,16 +238,21 @@ var Board = function (boardDim) {
     this.getCurrentPlayer = function() {
         return currentPlayer;
     }
+    
+    this.setCurrentPlayer = function(player_idx, playerCallback) {
+        playerCallback(currentPlayer === PLAYER_1 ? 1 : 2);
+        currentPlayer = this.getPlayer(player_idx);
+    }
 
     this.getPlayerForBox = function (idx) {
       return board[idx];
     }
-    // Initialize Board to othello starting positions. TODO(dbetser) Abstract
+    // Initialize Board to othello starting positions. TODO(dbetser): Abstract
     // away hardcoded values.
     this.initBoard = function () {
         var idx;
         for (idx = 0; idx < boardSize; idx++) {
-            if (idx === 27 || idx == 36)  
+            if (idx === 27 || idx === 36)  
                 board[idx] = PLAYER_1;
             else if (idx === 28 || idx === 35)  
                 board[idx] = PLAYER_2;
@@ -168,26 +260,23 @@ var Board = function (boardDim) {
                 board[idx] = NONE;
         }
     }
-    // returns true if player has won, false otherwise
+
+    // Returns true if a player has won, false otherwise.
     var hasWon = function (board, player) {
         // check if won
-        if (boxes_remaining == 0) {
+        if (boxesRemaining === 0) {
             // Check who's won
-            if (player_one_boxes > player_two_boxes) {
-                alert("Player 1 has won!");
+            if (playerOneBoxes > playerTwoBoxes) {
                 if (PLAYER_1 === player)
                     return true
-            } else if (player_two_boxes > player_one_boxes) {
-                alert("Player 2 has won!");
+            } else if (playerTwoBoxes > playerOneBoxes) {
                 if (PLAYER_2 === player)
                     return true
-            } else if (player_two_boxes == player_one_boxes) {
-                alert("It's a draw!");
             }
         }
-        return false;
+        return false;  // It's a draw.
     };      
-
+/*
     // speculative play; returns new board array
     // with the new move played
     var peek = function (board, player, position) {
@@ -195,36 +284,49 @@ var Board = function (boardDim) {
         new_board[position] = player;       
         return new_board;
     };
-        
+*/        
     // return array of positions player can play on board
     var validPlays = function (board) {
         var plays = [];
         board.forEach(function (b, i) {
-            if (numTurnedOver(i, false) > 0) plays.push(i);
+            if (debug > 1) {
+                console.log(b, i);
+            }
+            if (numTurnedOver(i, false) > 0) {
+                plays.push(i);
+                if (debug > 1) {
+                    console.log("Adding play ", i,
+                                "; number of valid plays so far: ", 
+                                plays.length);
+                }
+            }
         });
+        if (debug > 0) {
+            console.log("Number of valid plays: ", plays.length);
+        }
         return plays;
     };
 
 
     // Check the number of pieces to be turned over in this direction.
-    var numTurnedOverDir = function (row, column, rowDir, columnDir, flipBoxes) {
+    var numTurnedOverDir = function (row, column, rowDir, colDir, flipBoxes) {
         var numFlipped = 0;
         var curRow;
         var curColumn;
         var box_index;
         curRow = row + rowDir;
-        curColumn = column + columnDir;
-        while ((curRow > 0) && (curColumn > 0) && (curRow <= boardDim)
-               && (curColumn <= boardDim)) {
+        curColumn = column + colDir;
+        while ((curRow >= 0) && (curColumn >= 0) && (curRow < boardDim)
+               && (curColumn < boardDim)) {
             box_index = getPieceIndex(curRow, curColumn)
             if (board[box_index] === currentPlayer) {
                 // We found another of the current color
                 if (flipBoxes === true) {
                     // Do it all again
                     curRow = row + rowDir;
-                    curColumn = column + columnDir;
-                    while ((curRow > 0) && (curColumn > 0) && (curRow <= boardDim) 
-                           && (curColumn <= boardDim)) {
+                    curColumn = column + colDir;
+                    while ((curRow >= 0) && (curColumn >= 0)
+                           && (curRow < boardDim) && (curColumn < boardDim)) {
                         box_index = getPieceIndex(curRow, curColumn)
                         if (board[box_index] === currentPlayer) {
                             return numFlipped;
@@ -232,7 +334,7 @@ var Board = function (boardDim) {
     
                         board[box_index] = currentPlayer;
                         curRow += rowDir;
-                        curColumn += columnDir;
+                        curColumn += colDir;
                     }
                 }
                 return numFlipped;
@@ -244,7 +346,7 @@ var Board = function (boardDim) {
             // It's the opposite color so keep going
             numFlipped++;
             curRow += rowDir;
-            curColumn += columnDir;
+            curColumn += colDir;
         }
     
         // We reached the edge of the board
@@ -258,7 +360,13 @@ var Board = function (boardDim) {
         var numFlipped = 0;
         var row = Math.floor(box_index / boardDim);
         var col = box_index % boardDim;
-
+        if (debug > 1) {
+            console.log("Calling numTurnedOver with row=", row, "; col=", col);
+        }
+        if (box_index >= boardSize) {
+          alert(box_index);
+          
+        }
         if (board[box_index] != NONE) {
             return 0;
         }
@@ -272,6 +380,10 @@ var Board = function (boardDim) {
         numFlipped += numTurnedOverDir(row, col,  1, -1, flipBoxes);
         numFlipped += numTurnedOverDir(row, col,  0, -1, flipBoxes);
         numFlipped += numTurnedOverDir(row, col, -1, -1, flipBoxes);
+        if (debug > 1) {
+            console.log("After flipping box at: ", box_index,
+                        " Num turned over = ", numFlipped);
+        }
         return numFlipped;
     }
     
@@ -279,14 +391,21 @@ var Board = function (boardDim) {
     // Checks if a move is available for the current color.
     // If not, play switches to the other player.
     //
-    var isMoveAvailable = function (firstPass) {  
+    var isMoveAvailable = function (firstPass) {
+        if (debug > 1) {
+            console.log("Calling isMoveAvailable with firstPass = ", firstPass); 
+        }
         var idx;
         var szMessage;
     
         // Keep going until there's a legal move
-        for (idx = 1; idx <= boardSize; idx++) {
-            if (numTurnedOver(idx, false) > 0)
+        for (idx = 0; idx < boardSize; idx++) {
+            if (numTurnedOver(idx, false) > 0) {
+                if (debug > 0) {
+                    console.log("Found a valid move: ", idx);
+                }
                 return true;
+            }
         }
     
         // No moves were found; switch play to the other color.
@@ -312,65 +431,32 @@ var Board = function (boardDim) {
         }
     
         // No moves are available. Alert user.
-        alert(szMessage);
-    
+        $("#outcome").text(szMessage);
+        if (debug > 0) {
+            console.log(szMessage);
+        }
         if (firstPass === true) {
+            currentPlayer = currentPlayer.other;
             isMoveAvailable(false);
         } else {
-            numRemaining = 0;
+            boxesRemaining = 0;
         }   
         return false;
     }
 
-    // Helper function to translate (X, Y) coordinates to index in arrray: [0, boardSize).
+    // Helper function to translate (X, Y) coordinates to index in arrray:
+    // [0, boardSize).
     var getPieceIndex = function (row, col) {
-        return (row - 1) * 8 + col - 1;
+        return row * 8 + col;
     }
-
+/*
     // player can win in one play
     var canWin = function (board, player) {
         return validPlays(board).some(function (p) {
             return hasWon(peek(board, player, p), player);
         });
     };
-
-    // score of board for this player, assuming just played
-    // minimax not interesting for TTT, so add probabilistic element
-    // assume that player selects best move with probability of PROB_GOOD
-
-    // 1 if this player has won or can force a win from here
-    // -1 if other player has won or can force a win
-    // 0 if drawn (no move possible, and no wins)
-    // else weighted min of the scores other player can achieve by playing
-        
-    // level is useful in debugging; not used otherwise
-    
-    var score = function (board, player, level) {
-        
-        // if player has already won, return 1
-        if (hasWon(board, player)) return 1;
-        // if other player can win in one step, return -1
-        if (canWin(board, player.other)) return -1;
-        
-        var plays = validPlays(board);
-        // if drawn, return 0
-        if (plays.isEmpty()) return 0;
-        
-        var scores = plays.map(function (p) {
-            return -1 * score(peek(board, player.other, p), player.other, level+1);
-            });
-
-        var PROB_GOOD = 0.9; // probability of making the right move
-        var min_score = scores.reduce(function (a, e) {return (e < a) ? e : a}, 1);
-        var non_mins = scores.filter(function (e) {return (e !== min_score);});
-        var sum_non_mins = non_mins.reduce(function (a, e) {return a + e;}, 0);
-        
-        // so score is PROB_GOOD * min + (1 - PROB_GOOD)* average(non_min_scores)
-        var count_non_mins = non_mins.length;
-        if (count_non_mins === 0) return min_score;
-        return (PROB_GOOD * min_score) + (1 - PROB_GOOD) * (sum_non_mins/count_non_mins);
-    };
-        
+*/        
     // checks if the game is over
     this.isGameOver = function(player, resultCallback) {        
         if (hasWon(board, player)) {
@@ -392,27 +478,42 @@ var Board = function (boardDim) {
     this.getPlayer = function (i) {
         var players = {1: PLAYER_1, 2: PLAYER_2};       
         return players[i];
-    };  
-    
+    };
+
     // mutate board by playing player in position if the move is valid
-    this.play = function (player, position) {
-        if ($.inArray(position, validPlays(board)) != -1) {
-//        if (position] === NONE) {
-			numTurnedOver(position, true);
-            board[position] = player;
-            
+    this.play = function (player, position, canPlay, viewCallback) {
+        if (debug > 1) {
+            console.log("Play for player ", player, ", position ", position,
+                        ", valid ", $.inArray(position, validPlays(board)));
+        }
+        if (board[position] === NONE 
+            && $.inArray(position, validPlays(board)) != -1) {
+            if (canPlay) {
+                var numFlipped = numTurnedOver(position, true);
+                if (debug > 1) {
+                    console.log("numTurnedOver called; position, player=",
+                                position, player.toString());
+                }
+                board[position] = player;
+                boxesRemaining--;
+                if (currentPlayer === PLAYER_1) {
+                    playerTwoBoxes = playerTwoBoxes - numFlipped;
+                    playerOneBoxes = playerOneBoxes + numFlipped + 1;
+                } else if (currentPlayer === PLAYER_2) {
+                    playerTwoBoxes = playerTwoBoxes + numFlipped + 1;
+                    playerOneBoxes = playerOneBoxes - numFlipped;
+                }
+                viewCallback(playerOneBoxes, playerTwoBoxes, boxesRemaining);
+            }            
             return true;
         }
         return false;
     };
         
-    // return best move for player
+    // Return a move for player. 
     this.pickPlayPosition = function (player) {
-        var plays = validPlays(board);      
-        return plays[
-            plays.map(function (p) {
-                return score(peek(board, player, p), player, 0);
-            }).reduce(function(a, e, i, arr) {  // a = index of maxSoFar, e = element
-                return (e > arr[a]) ? i : a}, 0)];                              
+        var plays = validPlays(board); 
+        var randomIdx = Math.floor(plays.length * Math.random())
+        return plays[randomIdx];                              
     };
 }

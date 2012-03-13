@@ -31,7 +31,7 @@ The object model for the problem domain is included in the figure below. The pro
 
 I was not sure what the abstract state object module should look like, as the final application is composed of static HTML, which does not store state.
 
-\section{Design Notes}
+\section{Design Notes} %%%%Human player first instead of random
 \subsection{Key Challenges}
 \begin{itemize}
 \item Getting acquainted with Jinja and valid HTML best practices. 
@@ -42,10 +42,10 @@ I was not sure what the abstract state object module should look like, as the fi
 
 \subsection{Issues Arising}
 \begin{itemize}
-\item Images that did not have values for the desired metadata fields.\\
-For images without values for desired metadata fields, I simply returned a default message stating that the field was empty.
-\item HTML did not validate using the validator.\\
-Previously, I was using the doctype declaration of \texttt{<!DOCTYPE html>}. I switched the doctype to \texttt{<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">} to resolve the validation issues. I also needed to do things like ensure that the title of any image did not start with a number, so I prepended the word ``photo'' to ensure that all titles started with a valid character.
+\item How to implement undo and redo.\\
+This required adding a way for a user to ``commit a transaction'', which was done using the ``Submit'' button. The Submit button ensured that the user was done with the current play before 
+\item How to switch players with human vs. human play.\\
+
 \item Storing a pointer to the previous and next photo in the directory.\\
 In the first version of my implementation, I did not facilitate ImageDataObjects being aware of the predecessors and successors within the directory. I added a \texttt{prev} and \texttt{next} field in the \texttt{ImageDataObject} class to solve this issue.
 \end{itemize}
