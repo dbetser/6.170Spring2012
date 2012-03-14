@@ -36,15 +36,20 @@ $(document).ready(function () {
         console.log($("#playType").val());
     }
     
+    var onPlayTypeChanged = function() {
+        if ($("#playType").val() === "comp") {
+			isVersusComp = true;
+		} else if ($("#playType").val() === "human") { 
+			secondHumanPlayer = humanPlayer.other;
+			isVersusComp = false;
+		} else {
+		  alert("Error: No play mode is selected.");
+        }
+    };
+
     var isVersusComp;
-    if ($("#playType").val() === "comp") {
-        isVersusComp = true;
-    } else if ($("#playType").val() === "human") { 
-        secondHumanPlayer = humanPlayer.other;
-        isVersusComp = false;
-    } else {
-      alert("Error: No play mode is selected.");
-    }
+    onPlayTypeChanged();
+
 
     var maxHistorySize = 5;
     var boardStateHistory = new Array();
@@ -117,6 +122,7 @@ $(document).ready(function () {
         restart();
     });
     $('#playType').change(function() {
+        onPlayTypeChanged();
         restart();
     });
     $(document).keypress(function(e){
@@ -136,14 +142,14 @@ $(document).ready(function () {
 			console.log("bstlength", boardStateHistory.length, "idx: ",
 			boardStateHistoryIdx);
 		}
-    }
+    };
 
     var restart = function () {
         board.initBoard();
         
         board.resetStats(resetViewStats);
         refresh();
-    }
+    };
 
     // Store which box is currently clicked in the UI so that when the move is
     // submitted it can be referenced. -1 if no box is clicked.
