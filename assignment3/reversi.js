@@ -28,14 +28,18 @@ $(document).ready(function () {
     });
 
     // create a new board
-    var board = new Board(boardDim);
+    var game = new Game(boardDim);
 
     // Set player types/play mode.
-    var humanPlayer = board.getPlayer(1);
+    var humanPlayer = game.getPlayer(1);
     if (debug > 1) {
         console.log($("#playType").val());
     }
-    
+
+    var isVersusComp;
+
+    // Update the boolean representing whether the play type is human vs. human
+    // or human vs. computer.
     var onPlayTypeChanged = function() {
         if ($("#playType").val() === "comp") {
 			isVersusComp = true;
@@ -47,78 +51,92 @@ $(document).ready(function () {
         }
     };
 
-    var isVersusComp;
-    onPlayTypeChanged();
+    var maxHistorySize = 80;
+    var boardStateHistory;
+    var boardStateHistoryIdx;    
+    var initBoardStateHistory = function() {
+        boardStateHistory = new Array;
+        boardStateHistoryIdx = -1;
+    }
 
-
-    var maxHistorySize = 5;
-    var boardStateHistory = new Array();
-    var boardStateHistoryIdx = -1;
     // Add click handlers for buttons.
     $("#redo").click(function() {
         if (debug > 0) {
             console.log("Handler for redo.click() called.");
         }
+        if (debug > 0) {
+            for (var i = 0; i < boardStateHistory.length; i++) {
+                console.log(boardStateHistory[i].getBoard().toString());
+            }
+        }
         if (boardStateHistoryIdx < boardStateHistory.length - 1) {
-            board.restoreBoardState(boardStateHistory[boardStateHistoryIdx + 1],
-                                    refresh);
+            game.restoreBoardState(boardStateHistory[boardStateHistoryIdx + 1],
+                                   refreshView);
             boardStateHistoryIdx++;
         } else {
             alert("No moves to redo.");
         }
     });
+
     $("#undo").click(function() {
         if (debug > 0) {
             console.log("Handler for undo.click() called.");
         }
-        if (boardStateHistoryIdx < 0) {
+        if (boardStateHistoryIdx <= 0) {
             alert("No more moves to undo.");
         } else {
-            board.restoreBoardState(boardStateHistory[boardStateHistoryIdx],
-                                    refresh);
+			if (debug > 0) {
+			    console.log("Current index = ", boardStateHistoryIdx,
+			                "; history contains: ");
+				for (var i = 0; i < boardStateHistory.length; i++) {
+					console.log(boardStateHistory[i].getBoard().toString());
+				}
+			}
+            game.restoreBoardState(boardStateHistory[boardStateHistoryIdx - 1],
+                                   refreshView);
             boardStateHistoryIdx--;
+            refreshView();
         }
     });
+
     $("#done").click(function() {
         if (currentlyClickedBox === -1) {
             alert("You must select a valid box before submitting!");
             return;
         }
         var e = elements[currentlyClickedBox];
-        var player = board.getCurrentPlayer();
+        var player = game.getCurrentPlayer();
         // if the game is already complete, nothing to do
-        if (board.isGameOver(player, displayOutcome)) return;
+        if (game.isGameOver(player, displayOutcome)) return;
         if (isVersusComp) {
             if (e.play(player)) {
-                if (board.isGameOver(player, displayOutcome)) return;
-                storeState(board.getCurrentBoardState());        
-
+                if (game.isGameOver(player, displayOutcome)) return;
                 // TODO(dbetser): reduce code repetition below.
-				board.setCurrentPlayer(player.other, displayCurrentPlayer);
-				elements[board.pickPlayPosition(player.other)].play(player.other);
+				game.setCurrentPlayer(player.other, displayCurrentPlayer);
+				elements[game.pickPlayPosition(player.other)].play(player.other);
 		        currentlyClickedBox = -1;
-				board.isGameOver(player.other, displayOutcome);
-				board.setCurrentPlayer(player, displayCurrentPlayer);
+				game.setCurrentPlayer(player, displayCurrentPlayer);
+		        storeState(game.getCurrentBoardState());    
 
-				refresh();
+				game.isGameOver(player.other, displayOutcome);
+				refreshBoard();
 	        }
         } else {
             if (e.play(player)) {
                 if (debug > 0 ) {
                     console.log("human vs human play");
                 }
-                if (board.isGameOver(player, displayOutcome)) return;
-                storeState(board.getCurrentBoardState());        
-
+                if (game.isGameOver(player, displayOutcome)) return;
+                game.setCurrentPlayer(player.other, displayCurrentPlayer);
                 currentlyClickedBox = -1;
-                refresh();
-                board.setCurrentPlayer(player.other, displayCurrentPlayer);
+                storeState(game.getCurrentBoardState());        
+                refreshBoard();
             } else {
                 alert("Could not play here. Try another spot");
             }
         }
     });
-    $("#restart").click(function() { // Useful for both "restart" and "abort"
+    $("#restart").click(function() {  // Useful for both "restart" and "abort"
         restart();
     });
     $('#playType').change(function() {
@@ -126,35 +144,41 @@ $(document).ready(function () {
         restart();
     });
     $(document).keypress(function(e){
-        if (e.which === 13){
+        if (e.which === 13) {
             $("#done").click();
         }
     });
 
 	// Store state for undo/redo purposes.
     var storeState = function(boardState) {
+        if (debug > 0) {
+        	console.log("Storing state; Current index = ", boardStateHistoryIdx,
+			                "; history contains: ");
+            for (var i = 0; i < boardStateHistory.length; i++) {
+                console.log(boardStateHistory[i].getBoard().toString());
+            }
+        }
 		if (boardStateHistory.length === maxHistorySize) {
 			boardStateHistory.splice(0);
 		}
 		boardStateHistory.push(boardState);
 		boardStateHistoryIdx = boardStateHistory.length - 1;
-		if (debug > 1) {
+		if (debug > 0) {
 			console.log("bstlength", boardStateHistory.length, "idx: ",
 			boardStateHistoryIdx);
 		}
     };
 
     var restart = function () {
-        board.initBoard();
-        
-        board.resetStats(resetViewStats);
-        refresh();
+        game.initBoard();
+        initBoardStateHistory();
+        game.resetStats(refreshBoard);
+        storeState(game.getCurrentBoardState());
     };
 
     // Store which box is currently clicked in the UI so that when the move is
     // submitted it can be referenced. -1 if no box is clicked.
     var currentlyClickedBox = -1;
-
 
     // attach render methods to elements
     elements.forEach(function (e, idx) {
@@ -163,21 +187,21 @@ $(document).ready(function () {
                 e.addClass("currentlyClicked");
             } else {
                 e.removeClass("player1 player2 currentlyClicked");
-                if (player === board.getPlayer(1))
+                if (player === game.getPlayer(1))
                     e.addClass("player1");
-                else if (player === board.getPlayer(2))
+                else if (player === game.getPlayer(2))
                     e.addClass("player2");
             }
         };      
     });
 
     // Refresh the playing board's view.
-    var refresh = function () {
+    var refreshBoard = function () {
       if (debug > 0) {
           console.log("Refreshing view.");
       }
       for (var idx = 0; idx < boardSize; idx++) {
-        elements[idx].render(board.getPlayerForBox(idx));
+        elements[idx].render(game.getPlayerForBox(idx));
       }
     }
 
@@ -185,33 +209,31 @@ $(document).ready(function () {
     elements.forEach(function (e, i) {
         e.hover(
             function() {
-                if (board.getCurrentPlayer() === board.getPlayer(1) &&
-                    board.getPlayerForBox(i).toString() === "-")
+                if (game.getCurrentPlayer() === game.getPlayer(1) &&
+                    game.getPlayerForBox(i).toString() === "-")
                   e.addClass("player1");
-                else if (board.getCurrentPlayer() === board.getPlayer(2) &&
-                    board.getPlayerForBox(i).toString() === "-")
+                else if (game.getCurrentPlayer() === game.getPlayer(2) &&
+                    game.getPlayerForBox(i).toString() === "-")
                   e.addClass("player2");
             },
             function() {
-                if (board.getCurrentPlayer() === board.getPlayer(1) &&
-                    board.getPlayerForBox(i).toString() === "-")
+                if (game.getCurrentPlayer() === game.getPlayer(1) &&
+                    game.getPlayerForBox(i).toString() === "-")
                   e.removeClass("player1");
-                else if (board.getCurrentPlayer() === board.getPlayer(2) &&
-                    board.getPlayerForBox(i).toString() === "-")
+                else if (game.getCurrentPlayer() === game.getPlayer(2) &&
+                    game.getPlayerForBox(i).toString() === "-")
                   e.removeClass("player2");
             });
     });
 
-    // TODO(dbetser): change this to use restart.
-    board.initBoard();
-    storeState(board.getCurrentBoardState());        
-
-    refresh();
+    onPlayTypeChanged();
+    initBoardStateHistory();
+    restart();
 
     // attach play methods to elements
     elements.forEach(function (e, position) {
         e.play = function (player) {    
-            if (board.play(player, position, true, updateViewStats)) {
+            if (game.play(player, position, true, updateViewStats)) {
                 e.render(player);
                 return true;
             }
@@ -237,9 +259,10 @@ $(document).ready(function () {
             $("#outcome").text(outcome.draw);       
     };
 
-    var resetViewStats = function (pOneBoxes, pTwoBoxes, boxesLeft, playerIdx) {
+    var refreshView = function (pOneBoxes, pTwoBoxes, boxesLeft, playerIdx) {
         updateViewStats(pOneBoxes, pTwoBoxes, boxesLeft);
         displayCurrentPlayer(playerIdx);
+        refreshBoard()
     }
 
     // Update the game stats.
@@ -255,10 +278,10 @@ $(document).ready(function () {
     // computer player TODO cleanup
     elements.forEach(function (e, position) {
         e.click(function () {
-            var player = board.getCurrentPlayer();
-            if (board.play(player, position, false, updateViewStats)) {
+            var player = game.getCurrentPlayer();
+            if (game.play(player, position, false, updateViewStats)) {
                 currentlyClickedBox = position;
-                refresh();
+                refreshBoard();
             } else {
                 alert("You cannot play at this box");
             }
@@ -267,11 +290,34 @@ $(document).ready(function () {
 
 });
 
+// Object to store board state for undo/redo purposes.
+var BoardStateData = function(b, curPlayer, p1boxes, p2boxes, boxesRem) {
+		this.getBoard = function() {
+			return b.copy();
+		}
+		this.getCurPlayer = function () {
+		    if (debug > 0) {
+		        console.log("restoring player:", curPlayer);
+		    }
+			return curPlayer;
+		}
+		this.getPOneBoxes = function() {
+			return p1boxes;
+		}
+		this.getPTwoBoxes = function() {
+			return p2boxes;
+		}
+		this.getBoxesRem = function() {
+			return boxesRem;
+		}
+};
+
+
 //
-// Implementation of the Board ADT 
+// Implementation of the Game ADT 
 // Contains all the game logic
 //
-var Board = function (boardDim) {
+var Game = function (boardDim) {
     var PLAYER_1 = {}, PLAYER_2 = {}, NONE = {};
     PLAYER_1.other = PLAYER_2;
     PLAYER_2.other = PLAYER_1;
@@ -312,7 +358,7 @@ var Board = function (boardDim) {
     this.getPlayerForBox = function (idx) {
         return board[idx];
     }
-    // Initialize Board to othello starting positions. TODO(dbetser): Abstract
+    // Initialize Game to othello starting positions. TODO(dbetser): Abstract
     // away hardcoded values.
     this.initBoard = function () {
         var idx;
@@ -442,12 +488,22 @@ var Board = function (boardDim) {
     }
 
     this.getCurrentBoardState = function() {
-        return board.copy();
+        var bsd = new BoardStateData(board.copy(), currentPlayer, playerOneBoxes,
+        playerTwoBoxes, boxesRemaining)
+        return bsd;
     }
 
-    this.restoreBoardState = function (boardArray, refreshCallback) {
-        board = boardArray;
-        refreshCallback();
+    this.restoreBoardState = function (boardStateData, refreshCallback) {
+        board = boardStateData.getBoard();
+        if (debug > 0) {
+            console.log("Restoring state: board = ", board.toString());
+        }
+        currentPlayer = boardStateData.getCurPlayer();
+        playerOneBoxes = boardStateData.getPOneBoxes();
+        playerTwoBoxes = boardStateData.getPTwoBoxes();
+        boxesRemaining = boardStateData.getBoxesRem();
+        refreshCallback(playerOneBoxes, playerTwoBoxes, boxesRemaining,
+                        currentPlayer === PLAYER_1 ? 1 : 2);
     }
 
     // Helper function to translate (X, Y) coordinates to index in arrray:
