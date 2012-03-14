@@ -43,15 +43,36 @@ $(document).ready(function () {
         secondHumanPlayer = humanPlayer.other;
         isVersusComp = false;
     } else {
-      alert("You must select a play mode.");
+      alert("Error: No play mode is selected.");
     }
 
+    var maxHistorySize = 5;
+    var boardStateHistory = new Array();
+    var boardStateHistoryIdx = -1;
     // Add click handlers for buttons.
     $("#redo").click(function() {
-        alert("Handler for redo.click() called.");
+        if (debug > 0) {
+            console.log("Handler for redo.click() called.");
+        }
+        if (boardStateHistoryIdx < boardStateHistory.length - 1) {
+            board.restoreBoardState(boardStateHistory[boardStateHistoryIdx + 1],
+                                    refresh);
+            boardStateHistoryIdx++;
+        } else {
+            alert("No moves to redo.");
+        }
     });
     $("#undo").click(function() {
-        alert("Handler for undo.click() called.");
+        if (debug > 0) {
+            console.log("Handler for undo.click() called.");
+        }
+        if (boardStateHistoryIdx < 0) {
+            alert("No more moves to undo.");
+        } else {
+            board.restoreBoardState(boardStateHistory[boardStateHistoryIdx],
+                                    refresh);
+            boardStateHistoryIdx--;
+        }
     });
     $("#done").click(function() {
         if (currentlyClickedBox === -1) {
@@ -65,7 +86,9 @@ $(document).ready(function () {
         if (isVersusComp) {
             if (e.play(player)) {
                 if (board.isGameOver(player, displayOutcome)) return;
+                storeState(board.getCurrentBoardState());        
 
+                // TODO(dbetser): reduce code repetition below.
 				board.setCurrentPlayer(player.other, displayCurrentPlayer);
 				elements[board.pickPlayPosition(player.other)].play(player.other);
 		        currentlyClickedBox = -1;
@@ -80,6 +103,7 @@ $(document).ready(function () {
                     console.log("human vs human play");
                 }
                 if (board.isGameOver(player, displayOutcome)) return;
+                storeState(board.getCurrentBoardState());        
 
                 currentlyClickedBox = -1;
                 refresh();
@@ -101,9 +125,22 @@ $(document).ready(function () {
         }
     });
 
+	// Store state for undo/redo purposes.
+    var storeState = function(boardState) {
+		if (boardStateHistory.length === maxHistorySize) {
+			boardStateHistory.splice(0);
+		}
+		boardStateHistory.push(boardState);
+		boardStateHistoryIdx = boardStateHistory.length - 1;
+		if (debug > 1) {
+			console.log("bstlength", boardStateHistory.length, "idx: ",
+			boardStateHistoryIdx);
+		}
+    }
 
     var restart = function () {
         board.initBoard();
+        
         board.resetStats(resetViewStats);
         refresh();
     }
@@ -159,7 +196,10 @@ $(document).ready(function () {
             });
     });
 
+    // TODO(dbetser): change this to use restart.
     board.initBoard();
+    storeState(board.getCurrentBoardState());        
+
     refresh();
 
     // attach play methods to elements
@@ -264,7 +304,7 @@ var Board = function (boardDim) {
     }
 
     this.getPlayerForBox = function (idx) {
-      return board[idx];
+        return board[idx];
     }
     // Initialize Board to othello starting positions. TODO(dbetser): Abstract
     // away hardcoded values.
@@ -394,64 +434,16 @@ var Board = function (boardDim) {
         }
         return numFlipped;
     }
-/*    
-    //
-    // Checks if a move is available for the current color.
-    // If not, play switches to the other player.
-    //
-    var isMoveAvailable = function (firstPass) {
-        if (debug > 1) {
-            console.log("Calling isMoveAvailable with firstPass = ", firstPass); 
-        }
-        var idx;
-        var szMessage;
-    
-        // Keep going until there's a legal move
-        for (idx = 0; idx < boardSize; idx++) {
-            if (numTurnedOver(idx, false) > 0) {
-                if (debug > 0) {
-                    console.log("Found a valid move: ", idx);
-                }
-                return true;
-            }
-        }
-    
-        // No moves were found; switch play to the other color.
-        if (firstPass === true) {
-            szMessage = "There were no legal moves for ";
-            if (currentPlayer === PLAYER_1) {
-                szMessage += "black.  White plays again.";
-                currentPlayer = PLAYER_2;
-            } else {
-                szMessage += "white.  Black plays again.";
-                currentPlayer = PLAYER_1;
-            }
-        }
-        else {
-            szMessage = "There were no legal moves for ";
-            if (currentPlayer === PLAYER_1) {
-                szMessage += "black either.  End of game!";
-                currentPlayer = PLAYER_2;
-            } else {
-                szMessage += "white either.  End of game!";
-                currentPlayer = PLAYER_1;
-            }
-        }
-    
-        // No moves are available. Alert user.
-        $("#outcome").text(szMessage);
-        if (debug > 0) {
-            console.log(szMessage);
-        }
-        if (firstPass === true) {
-            currentPlayer = currentPlayer.other;
-            isMoveAvailable(false);
-        } else {
-            boxesRemaining = 0;
-        }   
-        return false;
+
+    this.getCurrentBoardState = function() {
+        return board.copy();
     }
-*/
+
+    this.restoreBoardState = function (boardArray, refreshCallback) {
+        board = boardArray;
+        refreshCallback();
+    }
+
     // Helper function to translate (X, Y) coordinates to index in arrray:
     // [0, boardSize).
     var getPieceIndex = function (row, col) {
