@@ -35,13 +35,13 @@ $(document).ready(function () {
     if (debug > 1) {
         console.log($("#playType").val());
     }
-    var computerPlayer;
-    var secondHumanPlayer;
+    
+    var isVersusComp;
     if ($("#playType").val() === "comp") {
-        computerPlayer = humanPlayer.other;
+        isVersusComp = true;
     } else if ($("#playType").val() === "human") { 
         secondHumanPlayer = humanPlayer.other;
-        // TODO implement human vs human
+        isVersusComp = false;
     } else {
       alert("You must select a play mode.");
     }
@@ -56,32 +56,38 @@ $(document).ready(function () {
     $("#done").click(function() {
         if (currentlyClickedBox === -1) {
             alert("You must select a valid box before submitting!");
+            return;
         }
         var e = elements[currentlyClickedBox];
-
+        var player = board.getCurrentPlayer();
         // if the game is already complete, nothing to do
-        if (board.isGameOver(humanPlayer, displayOutcome)) return;
-        if (e.play(humanPlayer)) {
-            refresh();
-            if (board.isGameOver(humanPlayer, displayOutcome)) return;
-            board.setCurrentPlayer(board.getCurrentPlayer().other,
-                                   displayCurrentPlayer);
+        if (board.isGameOver(player, displayOutcome)) return;
+        if (isVersusComp) {
+            if (e.play(player)) {
+                if (board.isGameOver(player, displayOutcome)) return;
 
-            elements[board.pickPlayPosition(computerPlayer)]
-                .play(computerPlayer);
-            refresh();
-            board.isGameOver(computerPlayer, displayOutcome);
-        }                                   
-        // todo: move. if the computer is first to go, find the best move and play
-        if (computerPlayer === board.getPlayer(1)) {
-            elements[board.pickPlayPosition(computerPlayer)]
-                .play(computerPlayer);
+				board.setCurrentPlayer(player.other, displayCurrentPlayer);
+				elements[board.pickPlayPosition(player.other)].play(player.other);
+		        currentlyClickedBox = -1;
+				board.isGameOver(player.other, displayOutcome);
+				board.setCurrentPlayer(player, displayCurrentPlayer);
+
+				refresh();
+	        }
+        } else {
+            if (e.play(player)) {
+                if (debug > 0 ) {
+                    console.log("human vs human play");
+                }
+                if (board.isGameOver(player, displayOutcome)) return;
+
+                currentlyClickedBox = -1;
+                refresh();
+                board.setCurrentPlayer(player.other, displayCurrentPlayer);
+            } else {
+                alert("Could not play here. Try another spot");
+            }
         }
-        currentlyClickedBox = -1;
-        refresh();
-        // Switch the current player.
-        board.setCurrentPlayer(board.getCurrentPlayer().other,
-                               displayCurrentPlayer);
     });
     $("#restart").click(function() { // Useful for both "restart" and "abort"
         restart();
@@ -98,6 +104,7 @@ $(document).ready(function () {
 
     var restart = function () {
         board.initBoard();
+        board.resetStats(resetViewStats);
         refresh();
     }
 
@@ -167,8 +174,8 @@ $(document).ready(function () {
     });
 
     // Update the player that is displayed in the UI.
-    var displayCurrentPlayer = function(player_idx) {
-        var player_str = player_idx === 1 ? "White" : "Black";
+    var displayCurrentPlayer = function(playerIdx) {
+        var player_str = playerIdx === 2 ? "White" : "Black";
         $("#whichPlayer").text(player_str);
         if (debug > 0) {
             console.log("displayCurrentPlayer called: ", player_str)
@@ -179,10 +186,15 @@ $(document).ready(function () {
     var displayOutcome = function(player, win) {
         if (win) 
             $("#outcome").text(
-                (player === humanPlayer) ? outcome.lose : outcome.win);
+                (player === humanPlayer) ? outcome.win : outcome.lose);
         else
             $("#outcome").text(outcome.draw);       
     };
+
+    var resetViewStats = function (pOneBoxes, pTwoBoxes, boxesLeft, playerIdx) {
+        updateViewStats(pOneBoxes, pTwoBoxes, boxesLeft);
+        displayCurrentPlayer(playerIdx);
+    }
 
     // Update the game stats.
     var updateViewStats = function(pOneBoxes, pTwoBoxes, boxesLeft) {
@@ -230,18 +242,25 @@ var Board = function (boardDim) {
     var playerOneBoxes = 2;
     var boxesRemaining = 60;
 
-
     // The current player of the game.
     var currentPlayer = PLAYER_1;
-    
+
+    this.resetStats = function(viewCallback) {
+        playerTwoBoxes = 2;
+        playerOneBoxes = 2;
+        boxesRemaining = 60;
+        currentPlayer = PLAYER_1;
+        viewCallback(playerOneBoxes, playerTwoBoxes, boxesRemaining, 1);
+    }
+
     // Allow external access to currentPlayer
     this.getCurrentPlayer = function() {
         return currentPlayer;
     }
     
-    this.setCurrentPlayer = function(player_idx, playerCallback) {
-        playerCallback(currentPlayer === PLAYER_1 ? 1 : 2);
-        currentPlayer = this.getPlayer(player_idx);
+    this.setCurrentPlayer = function(playerIdx, playerCallback) {
+        playerCallback(currentPlayer === PLAYER_2 ? 1 : 2);
+        currentPlayer = this.getPlayer(playerIdx);
     }
 
     this.getPlayerForBox = function (idx) {
@@ -262,37 +281,26 @@ var Board = function (boardDim) {
     }
 
     // Returns true if a player has won, false otherwise.
-    var hasWon = function (board, player) {
+    var gameFinished = function (board, player) {
         // check if won
         if (boxesRemaining === 0) {
-            // Check who's won
-            if (playerOneBoxes > playerTwoBoxes) {
-                if (PLAYER_1 === player)
-                    return true
-            } else if (playerTwoBoxes > playerOneBoxes) {
-                if (PLAYER_2 === player)
-                    return true
-            }
+            return true;
+        } else if (validPlays(board, PLAYER_1).length === 0 &&
+                   validPlays(board, PLAYER_2).length === 0) {
+            return true;
+        } else {
+            return false;
         }
-        return false;  // It's a draw.
     };      
-/*
-    // speculative play; returns new board array
-    // with the new move played
-    var peek = function (board, player, position) {
-        var new_board = board.copy();
-        new_board[position] = player;       
-        return new_board;
-    };
-*/        
+
     // return array of positions player can play on board
-    var validPlays = function (board) {
+    var validPlays = function (board, player) {
         var plays = [];
         board.forEach(function (b, i) {
             if (debug > 1) {
                 console.log(b, i);
             }
-            if (numTurnedOver(i, false) > 0) {
+            if (numTurnedOver(i, false, player) > 0) {
                 plays.push(i);
                 if (debug > 1) {
                     console.log("Adding play ", i,
@@ -309,7 +317,7 @@ var Board = function (boardDim) {
 
 
     // Check the number of pieces to be turned over in this direction.
-    var numTurnedOverDir = function (row, column, rowDir, colDir, flipBoxes) {
+    var numTurnedOverDir = function (row, column, rowDir, colDir, flipBoxes, player) {
         var numFlipped = 0;
         var curRow;
         var curColumn;
@@ -319,7 +327,7 @@ var Board = function (boardDim) {
         while ((curRow >= 0) && (curColumn >= 0) && (curRow < boardDim)
                && (curColumn < boardDim)) {
             box_index = getPieceIndex(curRow, curColumn)
-            if (board[box_index] === currentPlayer) {
+            if (board[box_index] === player) {
                 // We found another of the current color
                 if (flipBoxes === true) {
                     // Do it all again
@@ -328,11 +336,11 @@ var Board = function (boardDim) {
                     while ((curRow >= 0) && (curColumn >= 0)
                            && (curRow < boardDim) && (curColumn < boardDim)) {
                         box_index = getPieceIndex(curRow, curColumn)
-                        if (board[box_index] === currentPlayer) {
+                        if (board[box_index] === player) {
                             return numFlipped;
                         }
     
-                        board[box_index] = currentPlayer;
+                        board[box_index] = player;
                         curRow += rowDir;
                         curColumn += colDir;
                     }
@@ -356,7 +364,7 @@ var Board = function (boardDim) {
     //
     // Calculates the number of pieces that would get turned over
     //
-    var numTurnedOver = function (box_index, flipBoxes) {
+    var numTurnedOver = function (box_index, flipBoxes, player) {
         var numFlipped = 0;
         var row = Math.floor(box_index / boardDim);
         var col = box_index % boardDim;
@@ -372,21 +380,21 @@ var Board = function (boardDim) {
         }
     
         // Check pieces in all directions
-        numFlipped += numTurnedOverDir(row, col, -1,  0, flipBoxes);
-        numFlipped += numTurnedOverDir(row, col, -1,  1, flipBoxes);
-        numFlipped += numTurnedOverDir(row, col,  0,  1, flipBoxes);
-        numFlipped += numTurnedOverDir(row, col,  1,  1, flipBoxes);
-        numFlipped += numTurnedOverDir(row, col,  1,  0, flipBoxes);
-        numFlipped += numTurnedOverDir(row, col,  1, -1, flipBoxes);
-        numFlipped += numTurnedOverDir(row, col,  0, -1, flipBoxes);
-        numFlipped += numTurnedOverDir(row, col, -1, -1, flipBoxes);
+        numFlipped += numTurnedOverDir(row, col, -1,  0, flipBoxes, player);
+        numFlipped += numTurnedOverDir(row, col, -1,  1, flipBoxes, player);
+        numFlipped += numTurnedOverDir(row, col,  0,  1, flipBoxes, player);
+        numFlipped += numTurnedOverDir(row, col,  1,  1, flipBoxes, player);
+        numFlipped += numTurnedOverDir(row, col,  1,  0, flipBoxes, player);
+        numFlipped += numTurnedOverDir(row, col,  1, -1, flipBoxes, player);
+        numFlipped += numTurnedOverDir(row, col,  0, -1, flipBoxes, player);
+        numFlipped += numTurnedOverDir(row, col, -1, -1, flipBoxes, player);
         if (debug > 1) {
             console.log("After flipping box at: ", box_index,
                         " Num turned over = ", numFlipped);
         }
         return numFlipped;
     }
-    
+/*    
     //
     // Checks if a move is available for the current color.
     // If not, play switches to the other player.
@@ -443,34 +451,27 @@ var Board = function (boardDim) {
         }   
         return false;
     }
-
+*/
     // Helper function to translate (X, Y) coordinates to index in arrray:
     // [0, boardSize).
     var getPieceIndex = function (row, col) {
         return row * 8 + col;
     }
-/*
-    // player can win in one play
-    var canWin = function (board, player) {
-        return validPlays(board).some(function (p) {
-            return hasWon(peek(board, player, p), player);
-        });
-    };
-*/        
+     
     // checks if the game is over
     this.isGameOver = function(player, resultCallback) {        
-        if (hasWon(board, player)) {
+        if (gameFinished(board, player)) {
             this.isGameOver = function () { return true; }
-            resultCallback(player, true);
+            // Check who's won
+            if (playerOneBoxes > playerTwoBoxes) {
+                resultCallback(PLAYER_1, true)
+            } else if (playerTwoBoxes > playerOneBoxes) {
+                resultCallback(PLAYER_2, true)
+            } else {  // tie
+                resultCallback(player, false);
+            }
             return true;
-        }
-        
-        var plays = validPlays(board);  
-        if (plays.isEmpty()) {
-            this.isGameOver = function () { return true; }
-            resultCallback(player, false);
-            return true;
-        }   
+        }  
         return false;
     };
         
@@ -484,12 +485,13 @@ var Board = function (boardDim) {
     this.play = function (player, position, canPlay, viewCallback) {
         if (debug > 1) {
             console.log("Play for player ", player, ", position ", position,
-                        ", valid ", $.inArray(position, validPlays(board)));
+                        ", valid ",
+                        $.inArray(position, validPlays(board, player)));
         }
         if (board[position] === NONE 
-            && $.inArray(position, validPlays(board)) != -1) {
+            && $.inArray(position, validPlays(board, player)) != -1) {
             if (canPlay) {
-                var numFlipped = numTurnedOver(position, true);
+                var numFlipped = numTurnedOver(position, true, currentPlayer);
                 if (debug > 1) {
                     console.log("numTurnedOver called; position, player=",
                                 position, player.toString());
@@ -512,7 +514,7 @@ var Board = function (boardDim) {
         
     // Return a move for player. 
     this.pickPlayPosition = function (player) {
-        var plays = validPlays(board); 
+        var plays = validPlays(board, player); 
         var randomIdx = Math.floor(plays.length * Math.random())
         return plays[randomIdx];                              
     };
