@@ -3,22 +3,21 @@
 //
 // JavaScript file implementing the game Reversi/Othello.
 // Credit to http://www.onlinespiele-sammlung.de/othello/othello-reversi-games/
-// lemurcomputing for algorithm ideas.
+// lemurcomputing for algorithm ideas. Credit to the 6.170 Tic Tac Toe example
+// for code structuring ideas and some function reuse.
 
 if (!window.console) { console = {}; }
 
 // Global debug variable to control severity of log messages printed to console.
 var debug = 0;
 
-//
-// Initialization after the page is loaded
-//
+// Initialization after the page is loaded.
 $(document).ready(function () {
     var boardDim = 8;
     var boardSize = boardDim * boardDim;
-    var outcome = { "draw":"It's a draw!", "win":"Player 1 wins!",
-                    "lose":"Player 2 wins!"};
-    // create elements
+    var outcome = { "draw":"It's a draw!", "win":"Black wins!",
+                    "lose":"White wins!"};
+    // Create elements.
     var elements = Array.dim(boardSize).map(function () {
         // use jquery so that we have jq objects and not elements
         var box = $("<div>");
@@ -27,7 +26,7 @@ $(document).ready(function () {
         return box;
     });
 
-    // create a new board
+    // Create a new board.
     var game = new Game(boardDim);
 
     // Set player types/play mode.
@@ -43,11 +42,13 @@ $(document).ready(function () {
     // submitted it can be referenced. -1 if no box is clicked.
     var currentlyClickedBox = -1;
 
+    // Initialize the variables dealing with board history for undo/redo
+    // purposes.
     var maxHistorySize = 80;
     var boardStateHistory;
     var boardStateHistoryIdx;
     var initBoardStateHistory = function() {
-        boardStateHistory = new Array;
+        boardStateHistory = [];
         boardStateHistoryIdx = -1;
     };
 
@@ -136,21 +137,77 @@ $(document).ready(function () {
         }
         refreshBoard();
     });
+
     // Click handler for "restart" functionality.
     // Useful for both "restart" and "abort".
     $("#restart").click(function() {
         restart();
     });
-    // Change handler for
+
+    // Change handler for when the user selects a different mode (vs. human or
+    // vs. computer).
     $('#playType').change(function() {
         onPlayTypeChanged();
         restart();
     });
+
+    // Add keyboard handler for the enter key so that pressing enter has the
+    // same result as clicking the "Submit" button.
     $(document).keypress(function(e){
         if (e.which === 13) {
             $("#done").click();
         }
     });
+
+    // Prepare a new game.
+    var restart = function () {
+        game.initBoard();
+        initBoardStateHistory();
+        game.resetStats(refreshBoard);
+        storeState(game.getCurrentBoardState(isVersusComp));
+    };
+
+    // Update the player that is displayed in the UI.
+    var displayCurrentPlayer = function(playerIdx) {
+        var player_str = playerIdx === 2 ? "White" : "Black";
+        $("#whichPlayer").text(player_str);
+        if (debug > 0) {
+            console.log("displayCurrentPlayer called: ", player_str)
+        }
+    };
+
+    // Display the outcome of the game.
+    var displayOutcome = function(player, win) {
+        if (win)
+            $("#outcome").text(
+                (player === humanPlayer) ? outcome.win : outcome.lose);
+        else
+            $("#outcome").text(outcome.draw);
+    };
+
+    // Update the game stats.
+    var updateViewStats = function(pOneBoxes, pTwoBoxes, boxesLeft) {
+        $("#blackScore").text(pOneBoxes);
+        $("#whiteScore").text(pTwoBoxes);
+        $("#boxesRemaining").text(boxesLeft);
+    };
+
+    // Refresh the playing board's view.
+    var refreshBoard = function () {
+      if (debug > 0) {
+          console.log("Refreshing view.");
+      }
+      for (var idx = 0; idx < boardSize; idx++) {
+        elements[idx].render(game.getPlayerForBox(idx));
+      }
+    }
+
+    // Refresh all aspects of the view, including the stats, player, and board.
+    var refreshView = function (pOneBoxes, pTwoBoxes, boxesLeft, playerIdx) {
+        updateViewStats(pOneBoxes, pTwoBoxes, boxesLeft);
+        displayCurrentPlayer(playerIdx);
+        refreshBoard()
+    }
 
     // Store state for undo/redo purposes.
     var storeState = function(boardState) {
@@ -160,7 +217,8 @@ $(document).ready(function () {
             for (var i = 0; i < boardStateHistory.length; i++) {
                 console.log(boardStateHistory[i].getBoard().toString());
             }
-            console.log("Storestate storing", boardState.getCurPlayer().toString());
+            console.log("Storestate storing",
+                        boardState.getCurPlayer().toString());
         }
         if (boardStateHistory.length === maxHistorySize) {
             boardStateHistory.splice(0);
@@ -172,15 +230,6 @@ $(document).ready(function () {
             boardStateHistoryIdx);
         }
     };
-
-    // Prepare a new game.
-    var restart = function () {
-        game.initBoard();
-        initBoardStateHistory();
-        game.resetStats(refreshBoard);
-        storeState(game.getCurrentBoardState(isVersusComp));
-    };
-
 
     // Attach render methods to elements.
     elements.forEach(function (e, idx) {
@@ -196,16 +245,6 @@ $(document).ready(function () {
             }
         };
     });
-
-    // Refresh the playing board's view.
-    var refreshBoard = function () {
-      if (debug > 0) {
-          console.log("Refreshing view.");
-      }
-      for (var idx = 0; idx < boardSize; idx++) {
-        elements[idx].render(game.getPlayerForBox(idx));
-      }
-    }
 
     // Hover handler to change CSS before a box is clicked.
     elements.forEach(function (e, i) {
@@ -239,38 +278,6 @@ $(document).ready(function () {
         };
     });
 
-    // Update the player that is displayed in the UI.
-    var displayCurrentPlayer = function(playerIdx) {
-        var player_str = playerIdx === 2 ? "White" : "Black";
-        $("#whichPlayer").text(player_str);
-        if (debug > 0) {
-            console.log("displayCurrentPlayer called: ", player_str)
-        }
-    };
-
-    // Display the outcome of the game.
-    var displayOutcome = function(player, win) {
-        if (win)
-            $("#outcome").text(
-                (player === humanPlayer) ? outcome.win : outcome.lose);
-        else
-            $("#outcome").text(outcome.draw);
-    };
-
-    // Refresh all aspects of the view, including the stats, player, and board.
-    var refreshView = function (pOneBoxes, pTwoBoxes, boxesLeft, playerIdx) {
-        updateViewStats(pOneBoxes, pTwoBoxes, boxesLeft);
-        displayCurrentPlayer(playerIdx);
-        refreshBoard()
-    }
-
-    // Update the game stats.
-    var updateViewStats = function(pOneBoxes, pTwoBoxes, boxesLeft) {
-        $("#blackScore").text(pOneBoxes);
-        $("#whiteScore").text(pTwoBoxes);
-        $("#boxesRemaining").text(boxesLeft);
-    };
-
     // Add listeners for the click event on each element to set the currently
     // clicked box.
     elements.forEach(function (e, position) {
@@ -291,7 +298,12 @@ $(document).ready(function () {
     restart();
 });
 
-// Object to store board state for undo/redo purposes.
+
+// Implementation of the board state ADT. Modeled as a simple struct with
+// getters for all the private local fields. Includes all data that
+// represents a given state, including the player, the board, and the
+// information about how many boxes are allocated to the two players or remain
+// to be allocated. Useful for undo/redo purposes.
 var BoardStateData = function(b, curPlayer, p1boxes, p2boxes, boxesRem) {
     this.getBoard = function() {
         return b.copy();
@@ -311,10 +323,7 @@ var BoardStateData = function(b, curPlayer, p1boxes, p2boxes, boxesRem) {
 };
 
 
-//
-// Implementation of the Game ADT
-// Contains all the game logic
-//
+// Implementation of the Game ADT. Contains all the game logic.
 var Game = function (boardDim) {
     var PLAYER_1 = {}, PLAYER_2 = {}, NONE = {};
     PLAYER_1.other = PLAYER_2;
@@ -335,28 +344,6 @@ var Game = function (boardDim) {
     // The current player of the game.
     var currentPlayer = PLAYER_1;
 
-    this.resetStats = function(viewCallback) {
-        playerTwoBoxes = 2;
-        playerOneBoxes = 2;
-        boxesRemaining = 60;
-        currentPlayer = PLAYER_1;
-        viewCallback(playerOneBoxes, playerTwoBoxes, boxesRemaining, 1);
-    }
-
-    // Allow external access to currentPlayer
-    this.getCurrentPlayer = function() {
-        return currentPlayer;
-    }
-
-    this.setCurrentPlayer = function(playerIdx, playerCallback) {
-        currentPlayer = this.getPlayer(playerIdx);
-        playerCallback(currentPlayer === PLAYER_2 ? 2 : 1);
-    }
-
-    this.getPlayerForBox = function (idx) {
-        return board[idx];
-    }
-
     // Initialize Game to Othello starting positions. TODO(dbetser): Abstract
     // away hardcoded values.
     this.initBoard = function () {
@@ -369,6 +356,77 @@ var Game = function (boardDim) {
             else
                 board[idx] = NONE;
         }
+    }
+
+    // Reset the statistics used in the view including number of boxes unused
+    // and allocated to the two players, and the current player.
+    this.resetStats = function(viewCallback) {
+        playerTwoBoxes = 2;
+        playerOneBoxes = 2;
+        boxesRemaining = 60;
+        currentPlayer = PLAYER_1;
+        viewCallback(playerOneBoxes, playerTwoBoxes, boxesRemaining, 1);
+    }
+
+    // Allow external access to currentPlayer.
+    this.getCurrentPlayer = function() {
+        return currentPlayer;
+    }
+
+    // Set the current player and call the callback to update the View.
+    this.setCurrentPlayer = function(playerIdx, playerCallback) {
+        currentPlayer = this.getPlayer(playerIdx);
+        playerCallback(currentPlayer === PLAYER_2 ? 2 : 1);
+    }
+
+    // Return the occupant of the box at index idx.
+    this.getPlayerForBox = function (idx) {
+        return board[idx];
+    }
+
+    // Returns the player object for the given index.
+    this.getPlayer = function (i) {
+        var players = {1: PLAYER_1, 2: PLAYER_2};
+        return players[i];
+    };
+
+    // Helper function to translate (X, Y) coordinates to index in array
+    // in range [0, boardSize).
+    var getPieceIndex = function (row, col) {
+        return row * 8 + col;
+    }
+
+    // Pack up the current state of the game into a BoardStateData object
+    // for undo/redo purposes.
+    this.getCurrentBoardState = function(isVersusComp) {
+        // Implementing logical xor. This ensures that if we are playing against
+        // the computer, we return the alternate player.
+        var player;
+        if (isVersusComp) {
+            player = currentPlayer === PLAYER_1 ? 1 : 2;
+        } else {
+            player = currentPlayer === PLAYER_1 ? 2 : 1;
+        }
+        var bsd = new BoardStateData(board.copy(),
+                                     player,
+                                     playerOneBoxes, playerTwoBoxes,
+                                     boxesRemaining)
+        return bsd;
+    }
+
+    // Unpack the state of the game specified by the input variable, calling
+    // the refresh callback to update the UI when finished.
+    this.restoreBoardState = function (boardStateData, refreshCallback) {
+        board = boardStateData.getBoard();
+        if (debug > 0) {
+            console.log("Restoring state: board = ", board.toString());
+        }
+        currentPlayer = this.getPlayer(boardStateData.getCurPlayer());
+        playerOneBoxes = boardStateData.getPOneBoxes();
+        playerTwoBoxes = boardStateData.getPTwoBoxes();
+        boxesRemaining = boardStateData.getBoxesRem();
+        refreshCallback(playerOneBoxes, playerTwoBoxes, boxesRemaining,
+                        boardStateData.getCurPlayer());
     }
 
     // Returns true if a player has won, false otherwise.
@@ -384,7 +442,7 @@ var Game = function (boardDim) {
         }
     };
 
-    // return array of positions player can play on board
+    // Return array of positions player can play on board.
     var validPlays = function (board, player) {
         var plays = [];
         board.forEach(function (b, i) {
@@ -453,9 +511,7 @@ var Game = function (boardDim) {
         return 0;
     }
 
-    //
-    // Calculates the number of pieces that would get turned over
-    //
+    // Calculates the number of pieces that would get turned over.
     var numTurnedOver = function (box_index, flipBoxes, player) {
         var numFlipped = 0;
         var row = Math.floor(box_index / boardDim);
@@ -487,51 +543,16 @@ var Game = function (boardDim) {
         return numFlipped;
     }
 
-    this.getCurrentBoardState = function(isVersusComp) {
-        // Implementing logical xor. This ensures that if we are playing against
-        // the computer, we return the alternate player.
-        var player;
-        if (isVersusComp) {
-            player = currentPlayer === PLAYER_1 ? 1 : 2;
-        } else {
-            player = currentPlayer === PLAYER_1 ? 2 : 1;
-        }
-        var bsd = new BoardStateData(board.copy(),
-                                     player,
-                                     playerOneBoxes, playerTwoBoxes,
-                                     boxesRemaining)
-        return bsd;
-    }
-
-    this.restoreBoardState = function (boardStateData, refreshCallback) {
-        board = boardStateData.getBoard();
-        if (debug > 0) {
-            console.log("Restoring state: board = ", board.toString());
-        }
-        currentPlayer = this.getPlayer(boardStateData.getCurPlayer());
-        playerOneBoxes = boardStateData.getPOneBoxes();
-        playerTwoBoxes = boardStateData.getPTwoBoxes();
-        boxesRemaining = boardStateData.getBoxesRem();
-        refreshCallback(playerOneBoxes, playerTwoBoxes, boxesRemaining,
-                        boardStateData.getCurPlayer());
-    }
-
-    // Helper function to translate (X, Y) coordinates to index in arrray:
-    // [0, boardSize).
-    var getPieceIndex = function (row, col) {
-        return row * 8 + col;
-    }
-
-    // checks if the game is over
+    // Returns true if the game is over.
     this.isGameOver = function(player, resultCallback) {
         if (gameFinished(board, player)) {
             this.isGameOver = function () { return true; }
-            // Check who's won
+            // Check who's won.
             if (playerOneBoxes > playerTwoBoxes) {
                 resultCallback(PLAYER_1, true)
             } else if (playerTwoBoxes > playerOneBoxes) {
                 resultCallback(PLAYER_2, true)
-            } else {  // tie
+            } else {  // Tie.
                 resultCallback(player, false);
             }
             return true;
@@ -539,13 +560,8 @@ var Game = function (boardDim) {
         return false;
     };
 
-    // returns the player object
-    this.getPlayer = function (i) {
-        var players = {1: PLAYER_1, 2: PLAYER_2};
-        return players[i];
-    };
-
-    // mutate board by playing player in position if the move is valid
+    // Mutates the board by playing player in position if the move is valid.
+    // Updates all appropriate state variables.
     this.play = function (player, position, canPlay, viewCallback) {
         if (debug > 1) {
             console.log("Play for player ", player, ", position ", position,
@@ -576,7 +592,8 @@ var Game = function (boardDim) {
         return false;
     };
 
-    // Return a move for player.
+    // Return a move for player. Currently returns a random move from the list
+    // of available moves. TODO(dbetser): Implement smarter algorithm.
     this.pickPlayPosition = function (player) {
         var plays = validPlays(board, player);
         var randomIdx = Math.floor(plays.length * Math.random())
