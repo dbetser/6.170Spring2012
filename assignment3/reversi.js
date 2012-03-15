@@ -7,8 +7,8 @@
 
 if (!window.console) console = {};
 
-// Global debug variable to control severity of log messages. 
-var debug = 1;
+// Global debug variable to control severity of log messages printed to console.
+var debug = 0;
 
 //
 // Initialization after the page is loaded
@@ -36,30 +36,36 @@ $(document).ready(function () {
         console.log($("#playType").val());
     }
 
+    // Boolean to store whether the play is against a computer or human.
     var isVersusComp;
 
-    // Update the boolean representing whether the play type is human vs. human
-    // or human vs. computer.
-    var onPlayTypeChanged = function() {
-        if ($("#playType").val() === "comp") {
-			isVersusComp = true;
-		} else if ($("#playType").val() === "human") { 
-			secondHumanPlayer = humanPlayer.other;
-			isVersusComp = false;
-		} else {
-		  alert("Error: No play mode is selected.");
-        }
-    };
+    // Store which box is currently clicked in the UI so that when the move is
+    // submitted it can be referenced. -1 if no box is clicked.
+    var currentlyClickedBox = -1;
 
     var maxHistorySize = 80;
     var boardStateHistory;
-    var boardStateHistoryIdx;    
+    var boardStateHistoryIdx;
     var initBoardStateHistory = function() {
         boardStateHistory = new Array;
         boardStateHistoryIdx = -1;
     }
 
+    // Update the boolean representing whether the play type is human vs. human
+    // or human vs. computer.
+    var onPlayTypeChanged = function() {
+        if ($("#playType").val() === "comp") {
+            isVersusComp = true;
+        } else if ($("#playType").val() === "human") {
+            secondHumanPlayer = humanPlayer.other;
+            isVersusComp = false;
+        } else {
+          alert("Error: No play mode is selected.");
+        }
+    };
+
     // Add click handlers for buttons.
+    // Click handler for redo functionality.
     $("#redo").click(function() {
         if (debug > 0) {
             console.log("Handler for redo.click() called.");
@@ -78,6 +84,7 @@ $(document).ready(function () {
         }
     });
 
+    // Click handler for undo functionality.
     $("#undo").click(function() {
         if (debug > 0) {
             console.log("Handler for undo.click() called.");
@@ -85,20 +92,20 @@ $(document).ready(function () {
         if (boardStateHistoryIdx <= 0) {
             alert("No more moves to undo.");
         } else {
-			if (debug > 0) {
-			    console.log("Current index = ", boardStateHistoryIdx,
-			                "; history contains: ");
-				for (var i = 0; i < boardStateHistory.length; i++) {
-					console.log(boardStateHistory[i].getBoard().toString());
-				}
-			}
-            game.restoreBoardState(boardStateHistory[boardStateHistoryIdx - 1],
-                                   refreshView);
+            if (debug > 0) {
+                console.log("Current index = ", boardStateHistoryIdx,
+                            "; history contains: ");
+                for (var i = 0; i < boardStateHistory.length; i++) {
+                    console.log(boardStateHistory[i].getBoard().toString());
+                }
+            }
             boardStateHistoryIdx--;
-            refreshView();
+            game.restoreBoardState(boardStateHistory[boardStateHistoryIdx],
+                                   refreshView);
         }
     });
 
+    // Click handler for "submit" functionality.
     $("#done").click(function() {
         if (currentlyClickedBox === -1) {
             alert("You must select a valid box before submitting!");
@@ -106,39 +113,35 @@ $(document).ready(function () {
         }
         var e = elements[currentlyClickedBox];
         var player = game.getCurrentPlayer();
-        // if the game is already complete, nothing to do
+        // If the game is already complete, nothing to do.
         if (game.isGameOver(player, displayOutcome)) return;
-        if (isVersusComp) {
-            if (e.play(player)) {
-                if (game.isGameOver(player, displayOutcome)) return;
-                // TODO(dbetser): reduce code repetition below.
-				game.setCurrentPlayer(player.other, displayCurrentPlayer);
-				elements[game.pickPlayPosition(player.other)].play(player.other);
-		        currentlyClickedBox = -1;
-				game.setCurrentPlayer(player, displayCurrentPlayer);
-		        storeState(game.getCurrentBoardState());    
-
-				game.isGameOver(player.other, displayOutcome);
-				refreshBoard();
-	        }
-        } else {
-            if (e.play(player)) {
-                if (debug > 0 ) {
-                    console.log("human vs human play");
-                }
-                if (game.isGameOver(player, displayOutcome)) return;
-                game.setCurrentPlayer(player.other, displayCurrentPlayer);
-                currentlyClickedBox = -1;
-                storeState(game.getCurrentBoardState());        
-                refreshBoard();
-            } else {
-                alert("Could not play here. Try another spot");
-            }
+        if (e.play(player)) {
+            if (game.isGameOver(player, displayOutcome)) return;
+            currentlyClickedBox = -1;
         }
+        if (isVersusComp) {
+            game.setCurrentPlayer(player.other, displayCurrentPlayer);
+            elements[game.pickPlayPosition(player.other)].play(player.other);
+            game.setCurrentPlayer(player, displayCurrentPlayer);
+            storeState(game.getCurrentBoardState(isVersusComp));
+            game.isGameOver(player.other, displayOutcome);
+        } else {
+            if (debug > 1 ) {
+                console.log("human vs human play");
+            }
+            // TODO undo/redo player
+            storeState(game.getCurrentBoardState(isVersusComp));
+            console.log("Storing", player.toString());
+            game.setCurrentPlayer(player.other, displayCurrentPlayer);
+        }
+        refreshBoard();
     });
-    $("#restart").click(function() {  // Useful for both "restart" and "abort"
+    // Click handler for "restart" functionality.
+    // Useful for both "restart" and "abort".
+    $("#restart").click(function() {
         restart();
     });
+    // Change handler for
     $('#playType').change(function() {
         onPlayTypeChanged();
         restart();
@@ -149,38 +152,37 @@ $(document).ready(function () {
         }
     });
 
-	// Store state for undo/redo purposes.
+    // Store state for undo/redo purposes.
     var storeState = function(boardState) {
         if (debug > 0) {
-        	console.log("Storing state; Current index = ", boardStateHistoryIdx,
-			                "; history contains: ");
+            console.log("Storing state; Current index = ", boardStateHistoryIdx,
+                            "; history contains: ");
             for (var i = 0; i < boardStateHistory.length; i++) {
                 console.log(boardStateHistory[i].getBoard().toString());
             }
+            console.log("Storestate storing", boardState.getCurPlayer().toString());
         }
-		if (boardStateHistory.length === maxHistorySize) {
-			boardStateHistory.splice(0);
-		}
-		boardStateHistory.push(boardState);
-		boardStateHistoryIdx = boardStateHistory.length - 1;
-		if (debug > 0) {
-			console.log("bstlength", boardStateHistory.length, "idx: ",
-			boardStateHistoryIdx);
-		}
+        if (boardStateHistory.length === maxHistorySize) {
+            boardStateHistory.splice(0);
+        }
+        boardStateHistory.push(boardState);
+        boardStateHistoryIdx = boardStateHistory.length - 1;
+        if (debug > 0) {
+            console.log("bstlength", boardStateHistory.length, "idx: ",
+            boardStateHistoryIdx);
+        }
     };
 
+    // Prepare a new game.
     var restart = function () {
         game.initBoard();
         initBoardStateHistory();
         game.resetStats(refreshBoard);
-        storeState(game.getCurrentBoardState());
+        storeState(game.getCurrentBoardState(isVersusComp));
     };
 
-    // Store which box is currently clicked in the UI so that when the move is
-    // submitted it can be referenced. -1 if no box is clicked.
-    var currentlyClickedBox = -1;
 
-    // attach render methods to elements
+    // Attach render methods to elements.
     elements.forEach(function (e, idx) {
         e.render = function (player) {
             if (idx === currentlyClickedBox) {
@@ -192,7 +194,7 @@ $(document).ready(function () {
                 else if (player === game.getPlayer(2))
                     e.addClass("player2");
             }
-        };      
+        };
     });
 
     // Refresh the playing board's view.
@@ -226,18 +228,14 @@ $(document).ready(function () {
             });
     });
 
-    onPlayTypeChanged();
-    initBoardStateHistory();
-    restart();
-
-    // attach play methods to elements
+    // Attach play methods to elements.
     elements.forEach(function (e, position) {
-        e.play = function (player) {    
+        e.play = function (player) {
             if (game.play(player, position, true, updateViewStats)) {
                 e.render(player);
                 return true;
             }
-            return false;                                
+            return false;
         };
     });
 
@@ -250,15 +248,16 @@ $(document).ready(function () {
         }
     };
 
-    // display the outcome of the game
+    // Display the outcome of the game.
     var displayOutcome = function(player, win) {
-        if (win) 
+        if (win)
             $("#outcome").text(
                 (player === humanPlayer) ? outcome.win : outcome.lose);
         else
-            $("#outcome").text(outcome.draw);       
+            $("#outcome").text(outcome.draw);
     };
 
+    // Refresh all aspects of the view, including the stats, player, and board.
     var refreshView = function (pOneBoxes, pTwoBoxes, boxesLeft, playerIdx) {
         updateViewStats(pOneBoxes, pTwoBoxes, boxesLeft);
         displayCurrentPlayer(playerIdx);
@@ -267,15 +266,13 @@ $(document).ready(function () {
 
     // Update the game stats.
     var updateViewStats = function(pOneBoxes, pTwoBoxes, boxesLeft) {
-		$("#blackScore").text(pOneBoxes);
-		$("#whiteScore").text(pTwoBoxes);
-		$("#boxesRemaining").text(boxesLeft);
+        $("#blackScore").text(pOneBoxes);
+        $("#whiteScore").text(pTwoBoxes);
+        $("#boxesRemaining").text(boxesLeft);
     };
 
-    // add listeners for the click event on each element
-    // let the event handler call play on the element,
-    // check if the game is over, and make the move of the 
-    // computer player TODO cleanup
+    // Add listeners for the click event on each element to set the currently
+    // clicked box.
     elements.forEach(function (e, position) {
         e.click(function () {
             var player = game.getCurrentPlayer();
@@ -286,35 +283,36 @@ $(document).ready(function () {
                 alert("You cannot play at this box");
             }
         });
-    });        
+    });
 
+    // Initialize application.
+    onPlayTypeChanged();
+    initBoardStateHistory();
+    restart();
 });
 
 // Object to store board state for undo/redo purposes.
 var BoardStateData = function(b, curPlayer, p1boxes, p2boxes, boxesRem) {
-		this.getBoard = function() {
-			return b.copy();
-		}
-		this.getCurPlayer = function () {
-		    if (debug > 0) {
-		        console.log("restoring player:", curPlayer);
-		    }
-			return curPlayer;
-		}
-		this.getPOneBoxes = function() {
-			return p1boxes;
-		}
-		this.getPTwoBoxes = function() {
-			return p2boxes;
-		}
-		this.getBoxesRem = function() {
-			return boxesRem;
-		}
+        this.getBoard = function() {
+            return b.copy();
+        }
+        this.getCurPlayer = function () {
+            return curPlayer;
+        }
+        this.getPOneBoxes = function() {
+            return p1boxes;
+        }
+        this.getPTwoBoxes = function() {
+            return p2boxes;
+        }
+        this.getBoxesRem = function() {
+            return boxesRem;
+        }
 };
 
 
 //
-// Implementation of the Game ADT 
+// Implementation of the Game ADT
 // Contains all the game logic
 //
 var Game = function (boardDim) {
@@ -349,23 +347,24 @@ var Game = function (boardDim) {
     this.getCurrentPlayer = function() {
         return currentPlayer;
     }
-    
+
     this.setCurrentPlayer = function(playerIdx, playerCallback) {
-        playerCallback(currentPlayer === PLAYER_2 ? 1 : 2);
         currentPlayer = this.getPlayer(playerIdx);
+        playerCallback(currentPlayer === PLAYER_2 ? 2 : 1);
     }
 
     this.getPlayerForBox = function (idx) {
         return board[idx];
     }
-    // Initialize Game to othello starting positions. TODO(dbetser): Abstract
+
+    // Initialize Game to Othello starting positions. TODO(dbetser): Abstract
     // away hardcoded values.
     this.initBoard = function () {
         var idx;
         for (idx = 0; idx < boardSize; idx++) {
-            if (idx === 27 || idx === 36)  
+            if (idx === 27 || idx === 36)
                 board[idx] = PLAYER_1;
-            else if (idx === 28 || idx === 35)  
+            else if (idx === 28 || idx === 35)
                 board[idx] = PLAYER_2;
             else
                 board[idx] = NONE;
@@ -383,7 +382,7 @@ var Game = function (boardDim) {
         } else {
             return false;
         }
-    };      
+    };
 
     // return array of positions player can play on board
     var validPlays = function (board, player) {
@@ -396,7 +395,7 @@ var Game = function (boardDim) {
                 plays.push(i);
                 if (debug > 1) {
                     console.log("Adding play ", i,
-                                "; number of valid plays so far: ", 
+                                "; number of valid plays so far: ",
                                 plays.length);
                 }
             }
@@ -409,7 +408,8 @@ var Game = function (boardDim) {
 
 
     // Check the number of pieces to be turned over in this direction.
-    var numTurnedOverDir = function (row, column, rowDir, colDir, flipBoxes, player) {
+    var numTurnedOverDir = function (row, column, rowDir, colDir, flipBoxes,
+                                     player) {
         var numFlipped = 0;
         var curRow;
         var curColumn;
@@ -431,7 +431,7 @@ var Game = function (boardDim) {
                         if (board[box_index] === player) {
                             return numFlipped;
                         }
-    
+
                         board[box_index] = player;
                         curRow += rowDir;
                         curColumn += colDir;
@@ -442,13 +442,13 @@ var Game = function (boardDim) {
                 // No more pieces in this direction
                 return 0;
             }
-    
+
             // It's the opposite color so keep going
             numFlipped++;
             curRow += rowDir;
             curColumn += colDir;
         }
-    
+
         // We reached the edge of the board
         return 0;
     }
@@ -465,12 +465,12 @@ var Game = function (boardDim) {
         }
         if (box_index >= boardSize) {
           alert(box_index);
-          
+
         }
         if (board[box_index] != NONE) {
             return 0;
         }
-    
+
         // Check pieces in all directions
         numFlipped += numTurnedOverDir(row, col, -1,  0, flipBoxes, player);
         numFlipped += numTurnedOverDir(row, col, -1,  1, flipBoxes, player);
@@ -487,9 +487,19 @@ var Game = function (boardDim) {
         return numFlipped;
     }
 
-    this.getCurrentBoardState = function() {
-        var bsd = new BoardStateData(board.copy(), currentPlayer, playerOneBoxes,
-        playerTwoBoxes, boxesRemaining)
+    this.getCurrentBoardState = function(isVersusComp) {
+        // Implementing logical xor. This ensures that if we are playing against
+        // the computer, we return the alternate player.
+        var player;
+        if (isVersusComp) {
+            player = currentPlayer === PLAYER_1 ? 1 : 2;
+        } else {
+            player = currentPlayer === PLAYER_1 ? 2 : 1;
+        }
+        var bsd = new BoardStateData(board.copy(),
+                                     player,
+                                     playerOneBoxes, playerTwoBoxes,
+                                     boxesRemaining)
         return bsd;
     }
 
@@ -498,12 +508,12 @@ var Game = function (boardDim) {
         if (debug > 0) {
             console.log("Restoring state: board = ", board.toString());
         }
-        currentPlayer = boardStateData.getCurPlayer();
+        currentPlayer = this.getPlayer(boardStateData.getCurPlayer());
         playerOneBoxes = boardStateData.getPOneBoxes();
         playerTwoBoxes = boardStateData.getPTwoBoxes();
         boxesRemaining = boardStateData.getBoxesRem();
         refreshCallback(playerOneBoxes, playerTwoBoxes, boxesRemaining,
-                        currentPlayer === PLAYER_1 ? 1 : 2);
+                        boardStateData.getCurPlayer());
     }
 
     // Helper function to translate (X, Y) coordinates to index in arrray:
@@ -511,9 +521,9 @@ var Game = function (boardDim) {
     var getPieceIndex = function (row, col) {
         return row * 8 + col;
     }
-     
+
     // checks if the game is over
-    this.isGameOver = function(player, resultCallback) {        
+    this.isGameOver = function(player, resultCallback) {
         if (gameFinished(board, player)) {
             this.isGameOver = function () { return true; }
             // Check who's won
@@ -525,13 +535,13 @@ var Game = function (boardDim) {
                 resultCallback(player, false);
             }
             return true;
-        }  
+        }
         return false;
     };
-        
+
     // returns the player object
     this.getPlayer = function (i) {
-        var players = {1: PLAYER_1, 2: PLAYER_2};       
+        var players = {1: PLAYER_1, 2: PLAYER_2};
         return players[i];
     };
 
@@ -542,7 +552,7 @@ var Game = function (boardDim) {
                         ", valid ",
                         $.inArray(position, validPlays(board, player)));
         }
-        if (board[position] === NONE 
+        if (board[position] === NONE
             && $.inArray(position, validPlays(board, player)) != -1) {
             if (canPlay) {
                 var numFlipped = numTurnedOver(position, true, currentPlayer);
@@ -560,16 +570,16 @@ var Game = function (boardDim) {
                     playerOneBoxes = playerOneBoxes - numFlipped;
                 }
                 viewCallback(playerOneBoxes, playerTwoBoxes, boxesRemaining);
-            }            
+            }
             return true;
         }
         return false;
     };
-        
-    // Return a move for player. 
+
+    // Return a move for player.
     this.pickPlayPosition = function (player) {
-        var plays = validPlays(board, player); 
+        var plays = validPlays(board, player);
         var randomIdx = Math.floor(plays.length * Math.random())
-        return plays[randomIdx];                              
+        return plays[randomIdx];
     };
 }
