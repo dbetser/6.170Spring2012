@@ -14,7 +14,7 @@
 \setlength{\evensidemargin}{0pc}
 \setlength{\textwidth}{6.5in}
 
-\title{6.170 Assignment 1 Documentation}
+\title{6.170 Assignment 3 Documentation}
 \author{Dina Betser}
 
 
@@ -23,39 +23,49 @@
 
 \section{Models}
 \subsection{Object Models}
-The object model for the problem domain is included in the figure below. The problem domain object model demonstrates the system that must be built. A photo \texttt{Gallery} corresponding to a \texttt{Directory} of \texttt{Photo}s. Each \texttt{Photo} in the directory is preceded by the previous \texttt{Photo} in the \texttt{Directory} and followed by the next \texttt{Photo}. Every \texttt{Photo} has a \texttt{Caption} made up of metadata fields from the set of \texttt{IPTC Info Elements}\footnote{The IPTC Info elements include: date created, digital creation date, reference number, custom8, custom9, sub-location, object cycle, custom4, custom5, custom6, custom7, custom1, custom2, reference date, by-line title, local caption, keywords, province/state, category, custom17, custom14, digital creation time, custom12, custom13, custom10, custom11, headline, custom18, custom19, source, contact, by-line, object name, content location code, language identifier, release date, expiration date, reference service, custom16, original transmission reference, originating program, subject reference, city, supplemental category, content location name, country/primary location code, editorial update, custom15, fixture identifier, custom3, country/primary location name, action advised, custom20, copyright notice, program version, image orientation, edit status, expiration time, release time, credit, time created, special instructions, writer/editor, caption/abstract, urgency, and image type.}.
+The object model for the problem domain is included in the figure below. The problem domain object model demonstrates the system that must be built. 
+
+Some multiplicities that are not represented in the model are the number of \texttt{Box}es in a board, which is equal to $boardDim^2$, and the number of \texttt{HumanPlayer}s in the \texttt{VersusHumanMode}, which is 2.
 \begin{center}
-\includegraphics[width=200pt]{dot/obmod.png}
+\includegraphics[width=9.5in, angle=90]{dot/obmod.png}
 \label{fig:ob1} 
 \end{center}
 
-I was not sure what the abstract state object module should look like, as the final application is composed of static HTML, which does not store state.
+\subsection{State Machines}
+The following state machine describes how the state of the application changes as game play progresses.
+\begin{center}
+\includegraphics[width=7in]{dot/statediag.png}
+\label{fig:sm1} 
+\end{center}
 
-\section{Design Notes} %%%%Human player first instead of random
+\section{Design Notes}
 \subsection{Key Challenges}
 \begin{itemize}
-\item Getting acquainted with Jinja and valid HTML best practices. 
-\item Organizing the code to encapsulate the interaction with the file system, the Jinja templates, and the image data.
-\item Using just HTML/CSS to show one image at a time. Reused a CSS code snippet for this.
-\item Representing an image with all of its necessary components.
+\item One of the main challenges of this assignment was implementing the gameplay logic. Using online resources, I was able to get an idea of how the markers are reversed in according with the game rules.
+\item Organizing the code to ensure that changes to the UI were not made directly from the \texttt{Game} ADT, which served as the main bulk of the model in the MVC format. Callbacks were crucial in achieving this result. Doing so supported Separation of concerns, and helped implement a View and Model that remained linked by a Controller entity.
+\item Implementing undo/redo. This was done using a stack that stored \texttt{GameStateData} objects, each of which encapsulates the state of the board and the statistics of the game such as the current player and the number of boxes belonging to black, white, and still unallocated. 
 \end{itemize}
 
 \subsection{Issues Arising}
 \begin{itemize}
 \item How to implement undo and redo.\\
-This required adding a way for a user to ``commit a transaction'', which was done using the ``Submit'' button. The Submit button ensured that the user was done with the current play before 
+This required adding a way for a user to ``commit a transaction'', which was done using the ``Submit'' button. The Submit button ensured that the user was done with the current play before attempting to commit a move to change the state of the model. Upon submit, the state of the board was also recorded to the BoardStateHistory array. That array served as a stack to navigate during undo/redo. A pointer into the stack was kept such that the pointer always pointed to the last move committed, which could be decremented to get to previous states upon undo, and which would be incremented upon redo. In that way, the entire state of the board can be kept with every game.
 \item How to switch players with human vs. human play.\\
-
-\item Storing a pointer to the previous and next photo in the directory.\\
-In the first version of my implementation, I did not facilitate ImageDataObjects being aware of the predecessors and successors within the directory. I added a \texttt{prev} and \texttt{next} field in the \texttt{ImageDataObject} class to solve this issue.
+Because I based my code structure on tictactoe.js, I 
+\item A random player is selected to go first.\\
+One issue the a
+\item UI representation of markers.\\
+In order to represent a marker state,
 \end{itemize}
 
 \subsection{Critique}
 This project required a clear understanding of each Python class that was used. Each class I created had a clear specification and purpose, so the code itself was organized fairly well.
 
-The \texttt{ImageDataObject} data structure was particularly succinct at storing all of the information required to display a photo in the gallery.
+The \texttt{GameStateData} data structure was particularly succinct at storing all of the information required to store and restore the state of a game during undo/redo.
 
-The implementation was the most basic of the possible implementations that fulfilled the requirements. No nested directories were supported and options to the Python script needed to be provided as command line arguments, not by the user viewing the application, which is less user-friendly.
+The implementation chose more sophisticated notions of undo/redo than required; for instance
+
+The implementation also allowed a user to change play mode in the middle of the game, something that many implementations for this project did not.
 \section{Specification}
 \subsection{Overview}
 This application generates a static HTML website that works as a browser-based photo gallery implementation. The gallery allows users to view photos stored locally to the directory where the script is run. Users may specify which metadata fields they wish to use as captions in the gallery. They may scan through the collection of images by clicking the left and right arrow buttons. All effects are achieved without the use of Jacascript; only HTML and CSS along with the Python Jinja2 library are used for this project.
@@ -95,6 +105,8 @@ This code's modules can only be seen as the member variables of classes, since t
 \subsection{Code Notes}
 This code was fairly straightforward to write. The biggest issue I had was determining how to display only one photo, with previous and next buttons, using only HTML and CSS.
 
+The most major hack that was included in the project deals with updating the player whose turn it is during undo/redo moves. One of the problems with my implementation was that 
+
 \section{Testing}
 
 \subsection{Test Plan}
@@ -102,19 +114,19 @@ To test the application, the generated HTML was inspected in multiple browsers, 
 
 The testing for this project was mostly manual since it was a more contained project.
 \subsection{Test Cases}
-Tested the code on the sample photos, which displayed properly.
-
-It was determined that the buttons scan through the photos as desired.
+To test the board itself, I did the following:
+\begin{itemize}
+\item hi
+\end{itemize}
 
 The captions are displayed even when multiple IPTCInfo elements are included. This was tested by including the caption/abstract element twice, which worked properly by including the photo abstract twice in the caption on the website.
 
 The HTML was validated to ensure standards compliance.
-\begin{verbatim}
-$ python2.6 photo_gallery.py images/ photo_gallery.html caption/abstract,caption/abstract 
-templates/photo_gallery_template.html
-\end{verbatim}
+
+All of the above was done in both the Firefox and Chrome browsers.
 
 \subsection{Rationale and Conclusions}
-This code fulfills the requirements of the assignment, but doesn't go much beyond that. The product, when run with expected and well-formed inputs, runs exactly as desired. It may fail in unexpected ways with malformed input.
+This project fulfills the requirements of the assignment. The application runs as desired, and even implements undo/redo in a sophisticated and extensible way. Because I used extra slack days, I was able to debug to create a much cleaner and smoother product that I would have otherwise!
+
 \end{document}
 

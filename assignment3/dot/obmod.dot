@@ -1,16 +1,55 @@
 digraph ProblemOM {
 
-node [shape=box] Gallery;
-node [shape=box] Directory;
-node [shape=box] Image;
-node [shape=box] Path;
-node [shape=box] Caption;
-node [shape=box] "IPTC Info Element";
+node [shape=box] Game
+node [shape=box] History;
+node [shape=box] GameStateData;
+node [shape=box] Player;
+node [shape=box] HumanPlayer;
+node [shape=box] ComputerPlayer;
+node [shape=box] Mode;
+node [shape=box] VersusComputerMode;
+node [shape=box] VersusHumanMode;
+node [shape=box] Board;
+node [shape=box] Marker;
+node [shape=box] Box;
+node [shape=box] GameStats;
+node [shape=box] CurrentPlayer;
+node [shape=box] WhiteBox;
+node [shape=box] BlackBox;
+node [shape=box] UnallocatedBox;
+node [shape=box] Color;
+node [shape=box] BoardDimension;
+node [shape=point] joiner;
+node [shape=point] joiner1;
 
-Gallery -> Directory [label="presents", headlabel="!"];
-Directory -> Image [label="photo", headlabel="*"];
-Image -> Caption [label="caption", headlabel="!"];
-Image -> Path [label="path, next, previous", taillabel="!", headlabel="!"];
-Caption -> "IPTC Info Element" [label="metadata_field", headlabel="*"];
+Game -> Mode [label="mode", headlabel="!"];
+Game -> Player [label="has", headlabel="+"];
+Game -> Board [label="board", headlabel="!"];
+Player -> Mode [label="selects", headlabel="!"];
+Board -> Box [label="includes", headlabel="+"];
+Box -> Marker [label="covered_by", headlabel="?"];
+Marker -> Color [label="color", headlabel="!"];
+Player -> Color [label="represented_by", headlabel="!"];
+joiner->Player [arrowhead="onormal"];
+ComputerPlayer->joiner [arrowhead="none"];
+HumanPlayer->joiner [arrowhead="none"];
+Game->BoardDimension [label="dim", headlabel="!"];
+Game -> History [label="history", headlabel="!"];
+VersusComputerMode->ComputerPlayer [label="white_player", headlabel="!"];
+VersusComputerMode->HumanPlayer [label="black_player", headlabel="!"];
+VersusHumanMode->HumanPlayer [label="player", headlabel="+"];
+joiner1->Mode [arrowhead="onormal"];
+VersusHumanMode->joiner1 [arrowhead="none"];
+VersusComputerMode->joiner1 [arrowhead="none"];
+History -> GameStateData [label="element"];
+History -> GameStateData [label="current_history_item", headlabel="?"];
+Game -> GameStats [label="stats", headlabel="!"];
+GameStats -> CurrentPlayer [label="current_player", headlabel="!"];
+GameStats -> WhiteBox [label="number", headlabel="!"];
+GameStats -> BlackBox [label="number", headlabel="!"];
+GameStats -> UnallocatedBox [label="number", headlabel="!"];
+GameStateData ->GameStats [label="includes", headlabel="!"];
+GameStateData ->Board [label="includes", headlabel="!"];
+Player -> GameStateData [label="restores, stores"];
 
 };

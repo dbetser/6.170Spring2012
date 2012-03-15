@@ -161,6 +161,7 @@ $(document).ready(function () {
 
     // Prepare a new game.
     var restart = function () {
+        $("#outcome").text("");
         game.initBoard();
         initBoardStateHistory();
         game.resetStats(refreshBoard);
@@ -299,12 +300,12 @@ $(document).ready(function () {
 });
 
 
-// Implementation of the board state ADT. Modeled as a simple struct with
+// Implementation of the game state ADT. Modeled as a simple struct with
 // getters for all the private local fields. Includes all data that
 // represents a given state, including the player, the board, and the
 // information about how many boxes are allocated to the two players or remain
 // to be allocated. Useful for undo/redo purposes.
-var BoardStateData = function(b, curPlayer, p1boxes, p2boxes, boxesRem) {
+var GameStateData = function(b, curPlayer, p1boxes, p2boxes, boxesRem) {
     this.getBoard = function() {
         return b.copy();
     }
@@ -396,7 +397,7 @@ var Game = function (boardDim) {
         return row * 8 + col;
     }
 
-    // Pack up the current state of the game into a BoardStateData object
+    // Pack up the current state of the game into a GameStateData object
     // for undo/redo purposes.
     this.getCurrentBoardState = function(isVersusComp) {
         // Implementing logical xor. This ensures that if we are playing against
@@ -407,7 +408,7 @@ var Game = function (boardDim) {
         } else {
             player = currentPlayer === PLAYER_1 ? 2 : 1;
         }
-        var bsd = new BoardStateData(board.copy(),
+        var bsd = new GameStateData(board.copy(),
                                      player,
                                      playerOneBoxes, playerTwoBoxes,
                                      boxesRemaining)
@@ -416,17 +417,17 @@ var Game = function (boardDim) {
 
     // Unpack the state of the game specified by the input variable, calling
     // the refresh callback to update the UI when finished.
-    this.restoreBoardState = function (boardStateData, refreshCallback) {
-        board = boardStateData.getBoard();
+    this.restoreBoardState = function (GameStateData, refreshCallback) {
+        board = GameStateData.getBoard();
         if (debug > 0) {
             console.log("Restoring state: board = ", board.toString());
         }
-        currentPlayer = this.getPlayer(boardStateData.getCurPlayer());
-        playerOneBoxes = boardStateData.getPOneBoxes();
-        playerTwoBoxes = boardStateData.getPTwoBoxes();
-        boxesRemaining = boardStateData.getBoxesRem();
+        currentPlayer = this.getPlayer(GameStateData.getCurPlayer());
+        playerOneBoxes = GameStateData.getPOneBoxes();
+        playerTwoBoxes = GameStateData.getPTwoBoxes();
+        boxesRemaining = GameStateData.getBoxesRem();
         refreshCallback(playerOneBoxes, playerTwoBoxes, boxesRemaining,
-                        boardStateData.getCurPlayer());
+                        GameStateData.getCurPlayer());
     }
 
     // Returns true if a player has won, false otherwise.
@@ -523,7 +524,7 @@ var Game = function (boardDim) {
           alert(box_index);
 
         }
-        if (board[box_index] != NONE) {
+        if (board[box_index] !== NONE) {
             return 0;
         }
 
@@ -569,7 +570,7 @@ var Game = function (boardDim) {
                         $.inArray(position, validPlays(board, player)));
         }
         if (board[position] === NONE &&
-            $.inArray(position, validPlays(board, player)) != -1) {
+            $.inArray(position, validPlays(board, player)) !== -1) {
             if (canPlay) {
                 var numFlipped = numTurnedOver(position, true, currentPlayer);
                 if (debug > 1) {
