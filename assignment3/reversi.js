@@ -5,7 +5,7 @@
 // Credit to http://www.onlinespiele-sammlung.de/othello/othello-reversi-games/
 // lemurcomputing for algorithm ideas.
 
-if (!window.console) console = {};
+if (!window.console) { console = {}; }
 
 // Global debug variable to control severity of log messages printed to console.
 var debug = 0;
@@ -49,7 +49,7 @@ $(document).ready(function () {
     var initBoardStateHistory = function() {
         boardStateHistory = new Array;
         boardStateHistoryIdx = -1;
-    }
+    };
 
     // Update the boolean representing whether the play type is human vs. human
     // or human vs. computer.
@@ -231,7 +231,7 @@ $(document).ready(function () {
     // Attach play methods to elements.
     elements.forEach(function (e, position) {
         e.play = function (player) {
-            if (game.play(player, position, true, updateViewStats)) {
+           if (game.play(player, position, true, updateViewStats)) {
                 e.render(player);
                 return true;
             }
@@ -293,21 +293,21 @@ $(document).ready(function () {
 
 // Object to store board state for undo/redo purposes.
 var BoardStateData = function(b, curPlayer, p1boxes, p2boxes, boxesRem) {
-        this.getBoard = function() {
-            return b.copy();
-        }
-        this.getCurPlayer = function () {
-            return curPlayer;
-        }
-        this.getPOneBoxes = function() {
-            return p1boxes;
-        }
-        this.getPTwoBoxes = function() {
-            return p2boxes;
-        }
-        this.getBoxesRem = function() {
-            return boxesRem;
-        }
+    this.getBoard = function() {
+        return b.copy();
+    }
+    this.getCurPlayer = function () {
+        return curPlayer;
+    }
+    this.getPOneBoxes = function() {
+        return p1boxes;
+    }
+    this.getPTwoBoxes = function() {
+        return p2boxes;
+    }
+    this.getBoxesRem = function() {
+        return boxesRem;
+    }
 };
 
 
@@ -416,8 +416,8 @@ var Game = function (boardDim) {
         var box_index;
         curRow = row + rowDir;
         curColumn = column + colDir;
-        while ((curRow >= 0) && (curColumn >= 0) && (curRow < boardDim)
-               && (curColumn < boardDim)) {
+        while ((curRow >= 0) && (curColumn >= 0) && (curRow < boardDim) &&
+               (curColumn < boardDim)) {
             box_index = getPieceIndex(curRow, curColumn)
             if (board[box_index] === player) {
                 // We found another of the current color
@@ -425,8 +425,8 @@ var Game = function (boardDim) {
                     // Do it all again
                     curRow = row + rowDir;
                     curColumn = column + colDir;
-                    while ((curRow >= 0) && (curColumn >= 0)
-                           && (curRow < boardDim) && (curColumn < boardDim)) {
+                    while ((curRow >= 0) && (curColumn >= 0) &&
+                           (curRow < boardDim) && (curColumn < boardDim)) {
                         box_index = getPieceIndex(curRow, curColumn)
                         if (board[box_index] === player) {
                             return numFlipped;
@@ -552,8 +552,8 @@ var Game = function (boardDim) {
                         ", valid ",
                         $.inArray(position, validPlays(board, player)));
         }
-        if (board[position] === NONE
-            && $.inArray(position, validPlays(board, player)) != -1) {
+        if (board[position] === NONE &&
+            $.inArray(position, validPlays(board, player)) != -1) {
             if (canPlay) {
                 var numFlipped = numTurnedOver(position, true, currentPlayer);
                 if (debug > 1) {
