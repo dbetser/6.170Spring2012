@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+<title>Continuation-Passing Factorial</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="continuation-factorial.js"></script>
+<style>
+input {width:4em}
+</style>
+</head>
+<body>
+<div>
+Regular: <input id="plain-input"></input>! = <span id="plain-output"></span>
+</div>
+<div>
+Continuation: <input id="cont-input"></input>! = <span id="cont-output"></span>
+</div>
+<script>
+$("#plain-input").change(function() {
+    var input=$('#plain-input').val();
+    $('#plain-output').text(fact(input));
+});
+
+$("#cont-input").change(function() {
+    var input=$('#cont-input').val();
+    var handle = function (answer) {
+        $('#cont-output').text(answer);
+    }
+    contFact(input, handle);
+});
+</script>
+</div>
+</body>
+</html>
