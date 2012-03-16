@@ -1,17 +1,25 @@
 digraph MDD {
 
-node [shape=box] JinjaWrapper;
-node [shape=box] JinjaTemplate;
-node [shape=box] PhotoGalleryManager;
-node [shape=box] Directory;
-node [shape=box] "Metadata Fields";
-node [shape=box] ImageDataObjects;
+node [shape=box] jQueryLibrary;
+js [label="reversi.js", shape=box];
+dbjs [label="dbetser.util.js", shape=box];
+node [shape=box] Controller;
+node [shape=box] View;
+node [shape=box] Model;
+model [label="reversi_model.js", shape=box];
+html [label="reversi.html", shape=box];
+css [label="reversi.css", shape=box];
 
-JinjaWrapper -> PhotoGalleryManager;
-JinjaWrapper -> JinjaTemplate;
-PhotoGalleryManager -> Directory;
-PhotoGalleryManager -> "Metadata Fields";
-PhotoGalleryManager -> ImageDataObjects;
-
-
+html->css;
+html->dbjs;
+html->js;
+html->model;
+html->jQueryLibrary
+js->View;
+js->Controller;
+model->Model;
+Controller->Model;
+Controller->View;
+View->Model;
+View->Controller;
 };
