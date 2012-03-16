@@ -27,7 +27,7 @@ The object model for the problem domain is included in the figure below. The pro
 
 The top-level object is a \texttt{Game}, which includes the concepts of \texttt{Player}s, a \texttt{Board}, a play \texttt{Mode}, a \texttt{GameStateHistory} for undo/redoing moves, and \texttt{GameStats} to store things like the number of boxes allocated to each player.
 \begin{center}
-\includegraphics[width=9.5in, angle=90]{dot/obmod.png}
+\includegraphics[width=10.5in, angle=90]{dot/obmod.png}
 \label{fig:ob1} 
 \end{center}
 
@@ -42,8 +42,8 @@ The following state machine describes how the state of the application changes a
 \subsection{Key Challenges}
 \begin{itemize}
 \item One of the main challenges of this assignment was implementing the gameplay logic. Using online resources, I was able to get an idea of how the markers are reversed in accordance with the game rules.
-\item Organizing the code to ensure that changes to the UI were not made directly from the \texttt{Game} ADT, which served as the main bulk of the model in the MVC format. Callbacks were crucial in achieving this result. Doing so supported Separation of concerns, and helped implement a View and Model that remained linked by a Controller entity.
-\item Implementing undo/redo. This was done using a stack that stored \texttt{GameStateData} objects, each of which encapsulates the state of the board and the statistics of the game such as the current player and the number of boxes belonging to black, white, and still unallocated. 
+\item Organizing the code to ensure that changes to the UI were not made directly from the \texttt{Game} ADT, which served as the bulk of the model in the MVC format. Callbacks were crucial in achieving this result. Doing so supported Separation of concerns, and helped implement a View and Model that remained linked by a Controller entity.
+\item Implementing undo/redo. This was done using a stack that stored \texttt{GameStateData} objects, each of which encapsulates the state of the board and the statistics of the game such as the current player and the number of boxes belonging to the black player, the white player, and still unallocated. 
 \item How to switch players with human vs. human play. Because I based my code structure on tictactoe.js, the code originally supported a given ``round'' with every box click, with both human and computer player. It required a lot of manipulation of state to allow for two humans to play each other instead of automatically playing for the computer after each human move.
 \end{itemize}
 
@@ -64,7 +64,7 @@ It is possible to use the enter key to submit a move in addition to clicking the
 \end{itemize}
 
 \subsection{Critique}
-This project did a good job with separation of concerns by using the MVC design pattern. Each module I created had a clear specification and purpose, so the code itself was organized fairly well. All view/controller code was stored in \texttt{reversi.js}, while all model code was stored in \texttt{reversi\_model.js}. All code relating to updating the user interface was called from the view or controller; the model always called these view updates using callback function passed in to the model.
+This project implemented separation of concerns by using the MVC design pattern. Each module created had a clear specification and purpose, so the code itself was organized fairly well. All view/controller code was stored in \texttt{reversi.js}, while all model code was stored in \texttt{reversi\_model.js}. All code relating to updating the user interface was called from the view or controller; the model always called these view updates using callback function passed in to the model.
 
 The \texttt{GameStateData} data structure was particularly succinct at storing all of the information required to store and restore the state of a game during undo/redo.
 
@@ -100,16 +100,16 @@ When the game ends, either because all boxes are occupied or no more valid moves
 \section{Implementation}
 
 \subsection{Module Dependency Diagram}
-This code's modules can be seen in the context of the Model-View-Controller framework, which is roughly related to how the files were defined. The \texttt{reversi.js} file contains the View and Controller, while \texttt{reversi\_model.js} contains the model, which includes the \texttt{Game} ADT as well as the \texttt{GameStateData} ADT. Concerns are separate cleanly in that no code in the model touches anything in the user interface. Whenever the model needs to communicate a change in state to the View, a callback function is used such that a function in the view refreshes the View state. The Controller consists of functions that handle events in the UI such as the hover and click handling functions. 
+This code's modules can be seen in the context of the Model-View-Controller framework, which is roughly related to how the files were defined. The \texttt{reversi.js} file contains the View and Controller, while \texttt{reversi\_model.js} contains the model, which includes the \texttt{Game} ADT as well as the \texttt{GameStateData} ADT. Concerns are separated cleanly in that no code in the model touches anything in the user interface. Whenever the model needs to communicate a change in state to the View, a callback function is used such that a function in the view refreshes the View state. The Controller consists of functions that handle events in the UI, such as the hover and click handling functions. 
 
-This code is written using the jQuery library for DOM handling and convenience functions.
+This code is written using the jQuery library for DOM handling and convenience functions. The figure below shows the module dependency diagram.
 
 \begin{center}
 \includegraphics[width=350pt]{dot/moddepdiagram.png}
 \label{fig:ob2} 
 \end{center}
 \subsection{Code Notes}
-The most major hack that was included in the project deals with updating the player whose turn it is during undo/redo moves. One of the problems with my implementation was that for the two different types of play (versus computer and versus human), the current player was not 
+The most major hack that was included in the project deals with updating the player whose turn it is during undo/redo moves. One of the problems with my implementation was that for the two different types of play (versus computer and versus human), the current player during undo needed to be switched for versus human play and needed to stay the same for versus computer play. I included a hack to manually switch the current player in the \texttt{getCurrentBoardState} function based on the type of play. This allowed the current player to be correctly displayed even after a series of undos and redos.
 
 Another note is regarding the representation of markers in the UI. In order to present a box's state, I wanted to be able to include a round circle representing the marker that would be used in a real Othello game. However, to do this, I needed to figure out how to change the CSS to include the image of the circle. Using CSS sprites seemed to do the trick for that.
 \section{Testing}
@@ -126,15 +126,15 @@ To test the board itself, I did the following:
 \begin{itemize}
 \item Play the game until both players have won, in the versus computer and versus human modes. Ensure that the outcome message is displayed appropriately in all cases (black wins, white wins, tie).
 \item Ensure that refreshing resets all state during any other time of game play.
-\item Ensure that another box can be selected after a first box is selected without affecting the model.
+\item Ensure that once a first box is selected, another box can be selected without affecting the model.
 \item Test undo/redo with both modes to ensure that the board, statistics, and hovering marker change accordingly.
 \item Test various combinations of undo/redo to ensure that no bug occurs when restoring state.
 \end{itemize}
 
 \subsection{Rationale and Conclusions}
-This project fulfills the requirements of the assignment. The application runs as desired, and even implements undo/redo in a sophisticated and extensible way. Because I used extra slack days, I was able to debug to create a much cleaner and smoother product that I would have otherwise!
+This project fulfills the requirements of the assignment. The application runs as desired, and even implements undo/redo in a sophisticated and extensible way. Because I used extra slack days, I was able to debug to create a much cleaner and smoother product than I would have otherwise!
 
-The design decisions I made mostly ended up making the interface easier and cleaner to use, which improved the overall user experience.
+Many of the design decisions implemented made the interface easier and cleaner to use, which improved the overall user experience.
 
 \end{document}
 
