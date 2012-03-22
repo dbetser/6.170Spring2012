@@ -3,34 +3,11 @@
 
     <head>
         <title>network clock</title>
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js">
-        </script>
-        <script type="text/javascript">
-            if (!window.console) { console = {}; }
-            $(document).ready(function () {
-                $("#refr").click(function() {
-                    console.log("refreshed");
-                    var data = {};
-                    $.get(
-                        '/refresh',
-                        data,
-                        function(response) {
-                            console.log(response["current_time"]);
-                            $('#time').text(response["current_time"]);
-                        }
-                    );
-                });
-            });
-        </script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
     </head>
 
     <body>
         Hello!!
-        <div id="time">{{ cur_time }}</div>
-        <div id="refresh_panel">
-            <button id="refr">Refresh</button>
-        </div>
-        <div id="visitors_panel"> You are visitor #<span id="num_visitors">{{ num_visitors }}</span>.</div>
     </body>
 
 </html>
