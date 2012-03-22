@@ -1,0 +1,28 @@
+digraph StateDiagram {
+
+node [shape=box] Initialized;
+subgraph clusterGamePlay {
+   node [shape=box] BlackMove;
+   node [shape=box] WhiteMove;
+   node [shape=point] GamePlay;
+   label="GamePlay";
+   graph[style=dotted];
+}
+node [shape=box] ModeSelected;
+node [shape=box] GameOver;
+init [shape=point, label=""];
+
+init->Initialized;
+ModeSelected->Initialized[label="restart"];
+Initialized -> BlackMove [label="start_game"];
+WhiteMove -> BlackMove [label="select_box/submit"];
+WhiteMove -> BlackMove [label="undo"];
+WhiteMove -> BlackMove [label="redo"];
+BlackMove -> WhiteMove [label="select_box/submit"];
+BlackMove -> WhiteMove [label="undo"];
+BlackMove -> WhiteMove [label="redo"];
+
+GamePlay->Initialized [label="restart"];
+GamePlay -> GameOver [label="win"];
+GameOver -> Initialized [label="restart"];
+};
