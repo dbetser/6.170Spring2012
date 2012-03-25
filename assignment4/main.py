@@ -1,4 +1,6 @@
 from flask import Flask, request
+from flaskext.login import LoginManager
+
 import os
 app = Flask(__name__)
 

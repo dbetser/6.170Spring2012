@@ -1,0 +1,11 @@
+{% extends 'stickies_layout.html' %}
+{% block content %}
+  <div id="sticky_pane">
+    {% for sticky in sticky_objects %}
+      <div id="sticky{{ sticky.id }}"></div>
+      <div class="sticky_content" id="content{{ sticky.id }}">
+        Content: {{ sticky.content }}
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}
