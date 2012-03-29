@@ -1,47 +1,28 @@
 digraph ProblemOM {
 
-node [shape=box] Game
-node [shape=box] History;
-node [shape=box] GameStateData;
-node [shape=box] Player;
-node [shape=box] HumanPlayer;
-node [shape=box] ComputerPlayer;
-node [shape=box] Mode;
-node [shape=box] VersusComputerMode;
-node [shape=box] VersusHumanMode;
-node [shape=box] Board;
-node [shape=box] Box;
-node [shape=box] GameStats;
-node [shape=box] CurrentPlayer;
-node [shape=box] Number;
-node [shape=box] BoardDimension;
+node [shape=box] User;
+node [shape=box] Note;
+node [shape=box] Position;
+node [shape=box] TextContent;
+node [shape=box] Content;
+node [shape=box] Color;
+node [shape=box] LoggedInUser;
+node [shape=box] AnonymousUser;
+node [shape=box] UserId;
+node [shape=box] Username;
+node [shape=box] Password;
+
 node [shape=point] joiner;
-node [shape=point] joiner1;
 
-Game -> Mode [label="mode", headlabel="!"];
-Game -> Player [label="white_player, black_player", headlabel="!"];
-Game -> Board [label="board", headlabel="!"];
-Player -> Mode [label="selects", headlabel="!"];
-Board -> Box [label="box", headlabel="+"];
-joiner->Player [arrowhead="onormal"];
-ComputerPlayer->joiner [arrowhead="none"];
-HumanPlayer->joiner [arrowhead="none"];
-Game->BoardDimension [label="dim", headlabel="!"];
-Game -> History [label="history", headlabel="!"];
-VersusComputerMode->ComputerPlayer [label="white_player", headlabel="!"];
-VersusComputerMode->HumanPlayer [label="black_player", headlabel="!"];
-VersusHumanMode->HumanPlayer [label="white_player, black_player", headlabel="!"];
-joiner1->Mode [arrowhead="onormal"];
-VersusHumanMode->joiner1 [arrowhead="none"];
-VersusComputerMode->joiner1 [arrowhead="none"];
-History -> GameStateData [label="element"];
-History -> GameStateData [label="current_history_item", headlabel="?"];
-Game -> GameStats [label="stats", headlabel="!"];
-GameStats -> CurrentPlayer [label="current_player", headlabel="!"];
-CurrentPlayer->Player [arrowhead="onormal"];
-GameStats -> Number [label="black_box, white_box, unallocated_box", headlabel="!"];
-GameStateData ->GameStats [label="stats", headlabel="!"];
-GameStateData ->Board [label="board", headlabel="!"];
-Player -> GameStateData [label="restores, stores"];
-
+User -> Note [label="note", taillabel="!"];
+Note -> Position [label="x, y, z", headlabel="!"];
+Note -> Color [label="color", headlabel="!"];
+LoggedInUser -> joiner [arrowhead="none"];
+AnonymousUser -> joiner [arrowhead="none"];
+joiner -> User [arrowhead="onormal"];
+LoggedInUser -> UserId [label="id", taillabel="!", headlabel="!"];
+LoggedInUser -> Username [label="uname", taillabel="!", headlabel="!"];
+LoggedInUser -> Password [label="password", headlabel="!"];
+Note -> Content [label="contains   ", headlabel="!"];
+TextContent-> Content [arrowhead="onormal"];
 };

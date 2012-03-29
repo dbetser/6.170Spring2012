@@ -27,24 +27,26 @@ The object model for the problem domain is included in the figure below. The pro
 
 The top-level object is a \texttt{Game}, which includes the concepts of \texttt{Player}s, a \texttt{Board}, a play \texttt{Mode}, a \texttt{GameStateHistory} for undo/redoing moves, and \texttt{GameStats} to store things like the number of boxes allocated to each player.
 \begin{center}
-\includegraphics[width=10.5in, angle=90]{dot/obmod.png}
+\includegraphics[width=5in]{dot/obmod.png}
 \label{fig:ob1} 
 \end{center}
 
 \subsection{State Machines}
 The following state machine describes how the state of the application changes as game play progresses.
 \begin{center}
-\includegraphics[width=7in]{dot/statediag.png}
+\includegraphics[width=7in]{dot/statediagram.png}
 \label{fig:sm1} 
 \end{center}
 
 \section{Design Notes}
 \subsection{Key Challenges}
 \begin{itemize}
-\item One of the main challenges of this assignment was implementing the gameplay logic. Using online resources, I was able to get an idea of how the markers are reversed in accordance with the game rules.
-\item Organizing the code to ensure that changes to the UI were not made directly from the \texttt{Game} ADT, which served as the bulk of the model in the MVC format. Callbacks were crucial in achieving this result. Doing so supported Separation of concerns, and helped implement a View and Model that remained linked by a Controller entity.
-\item Implementing undo/redo. This was done using a stack that stored \texttt{GameStateData} objects, each of which encapsulates the state of the board and the statistics of the game such as the current player and the number of boxes belonging to the black player, the white player, and still unallocated. 
-\item How to switch players with human vs. human play. Because I based my code structure on tictactoe.js, the code originally supported a given ``round'' with every box click, with both human and computer player. It required a lot of manipulation of state to allow for two humans to play each other instead of automatically playing for the computer after each human move.
+\item Displaying/deleting notes
+\item Need to be logged in to play?
+\item Editing notes on the fly or using a popup dialog.
+\item Storing the state in the frontend for a dirty sticky.
+\item Save on login and/or save.
+\item Status of server. Should it be stateless?
 \end{itemize}
 
 \subsection{Issues Arising}
