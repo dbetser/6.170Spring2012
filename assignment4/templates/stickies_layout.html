@@ -13,8 +13,8 @@
   </head>
   <body>
     <div id="header">
-      {% if current_user.is_authenticated() %}
-        Welcome to your stickies! | <a href="{{ url_for('logout') }}">log out</a>
+      {% if session.logged_in%}
+        Welcome, {{ session.username }}! | <a href="{{ url_for('logout') }}">log out</a>
       {% else %}
         You are not logged in | <a href="{{ url_for('login') }}">log in</a>
         | <a href="{{ url_for('register') }}">register</a>

@@ -11,9 +11,9 @@ import sys
 
 from flask import (Flask, render_template, redirect, url_for, flash, request,
                    jsonify, session, g)
-from flaskext.login import (LoginManager, current_user, login_required,
-                            login_user, logout_user,
-                            confirm_login, fresh_login_required)
+# from flaskext.login import (LoginManager, current_user, login_required,
+#                             login_user, logout_user,
+#                             confirm_login, fresh_login_required)
 
 # Configuration.
 DATABASE = 'db/stickies_database.db'
@@ -25,23 +25,22 @@ app.debug = True
 app.secret_key = 'secretkey'
 
 
-login_manager = LoginManager()
+# login_manager = LoginManager()
+# login_manager.anonymous_user = stickies_model.Anonymous
+# login_manager.login_view = 'login'
+# login_manager.login_message = u'Please log in to access this page.'
+# login_manager.refresh_view = 'reauth'
 
-login_manager.anonymous_user = stickies_model.Anonymous
-login_manager.login_view = 'login'
-login_manager.login_message = u'Please log in to access this page.'
-login_manager.refresh_view = 'reauth'
-
-@login_manager.user_loader
-def load_user(id):
-    db = shelve.open(app.config['DATABASE'], writeback=True)
-    username = db['id_name_map'].get(int(id))
-    user = db['userinfo_map'].get(username)
-    db.close()
-    return user
-
-
-login_manager.setup_app(app)
+# @login_manager.user_loader
+# def load_user(id):
+#     db = shelve.open(app.config['DATABASE'], writeback=True)
+#     username = db['id_name_map'].get(int(id))
+#     user = db['userinfo_map'].get(username)
+#     db.close()
+#     return user
+#
+#
+# login_manager.setup_app(app)
 
 
 def reset_db():
@@ -92,7 +91,10 @@ def register():
                 hash_pwd(request.form['password']))
             g.db['userinfo_map'][request.form['username']] = user
             g.db['current_userid'] += 1
-            return True
+            session['logged_in'] = True
+            session['username'] = user.name
+            flash('Logged in!')
+            return redirect(url_for('index'))
 #             remember = request.form.get('remember', 'no') == 'yes'
 #             if login_user(user, remember=remember):
 #                 session['username'] = user.name
@@ -103,50 +105,71 @@ def register():
 #                 flash('Sorry, but you could not register.')
     return render_template('register.html')
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    print "logiin"
-    if request.method == 'POST' and 'username' in request.form:
+    if request.method == 'POST':
         username = request.form['username']
-        # Check if username exists.
-        if username in g.db['id_name_map'].values():
-            # Ensure that password matches expected password.
-            user = g.db['userinfo_map'].get(username)
-            print "user", user.pw_hash, "form", hash_pwd(request.form['password'])
-            print hash_pwd(request.form['password']) == user.pw_hash
-            if hash_pwd(request.form['password']) == user.pw_hash:
-                remember = request.form.get('remember', 'no') == 'yes'
-                if login_user(user, remember=remember):
-                    session['username'] = user.name
-                    flash('Logged in!')
-                    return redirect(request.args.get('next') or url_for('index'))
-                else:
-                    flash('Sorry, but you could not log in.')
-            else:
-                flash('Sorry, but you provided an incorrect password.')
+        user = g.db['userinfo_map'].get(username)
+        if username not in g.db['id_name_map'].values():
+            flash('Invalid username.')
+        elif hash_pwd(request.form['password']) != user.pw_hash:
+            flash('Invalid password.')
         else:
-            flash(u'Invalid username.')
+            session['logged_in'] = True
+            session['username'] = user.name
+            flash('You were logged in')
+            return redirect(url_for('index'))
     return render_template('login.html')
 
+# @app.route('/login', methods=['GET', 'POST'])
+# def login():
+#     print "logiin"
+#     if request.method == 'POST' and 'username' in request.form:
+#         username = request.form['username']
+#         # Check if username exists.
+#         if username in g.db['id_name_map'].values():
+#             # Ensure that password matches expected password.
+#             user = g.db['userinfo_map'].get(username)
+#             print "user", user.pw_hash, "form", hash_pwd(request.form['password'])
+#             print hash_pwd(request.form['password']) == user.pw_hash
+#             if hash_pwd(request.form['password']) == user.pw_hash:
+#                 remember = request.form.get('remember', 'no') == 'yes'
+#                 if login_user(user, remember=remember):
+#                     session['username'] = user.name
+#                     flash('Logged in!')
+#                     return redirect(request.args.get('next') or url_for('index'))
+#                 else:
+#                     flash('Sorry, but you could not log in.')
+#             else:
+#                 flash('Sorry, but you provided an incorrect password.')
+#         else:
+#             flash(u'Invalid username.')
+#     return render_template('login.html')
 
-@app.route('/reauth', methods=['GET', 'POST'])
-@login_required
-def reauth():
-    if request.method == 'POST':
-        confirm_login()
-        flash(u'Reauthenticated.')
-        return redirect(request.args.get('next') or url_for('index'))
-    return render_template('reauth.html')
 
+# @app.route('/reauth', methods=['GET', 'POST'])
+# @login_required
+# def reauth():
+#     if request.method == 'POST':
+#         confirm_login()
+#         flash(u'Reauthenticated.')
+#         return redirect(request.args.get('next') or url_for('index'))
+#     return render_template('reauth.html')
 
 @app.route('/logout')
-@login_required
 def logout():
-    session['username'] = 'anonymous'
-    logout_user()
-    flash('Logged out.')
+    session.pop('logged_in', None)
+    session.pop('username', None)
+    flash('You were logged out.')
     return redirect(url_for('index'))
+
+# @app.route('/logout')
+# @login_required
+# def logout():
+#     session['username'] = 'anonymous'
+#     logout_user()
+#     flash('Logged out.')
+#     return redirect(url_for('index'))
 
 def get_serialized_stickies_for_user(username):
  return jsonify(
@@ -154,8 +177,11 @@ def get_serialized_stickies_for_user(username):
          x.serialize for x in g.db['stickies_for_username'].get(username)])
 
 @app.route('/add_sticky', methods=["POST"])
-@login_required
+#@login_required
 def add_sticky(text_content, position):
+    if not session.get('logged_in'):
+        flash('You must be logged in to use this functionality.')
+        abort(401)
     user = g.db['userinfo_map'].get(session['username'])
     new_sticky = stickies_model.StickyNote(
         user,
