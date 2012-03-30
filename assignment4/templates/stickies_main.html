@@ -2,10 +2,12 @@
 {% block content %}
   <div id="sticky_pane">
     {% for sticky in sticky_objects %}
-      <div id="sticky{{ sticky.id }}"></div>
-      <div class="sticky_content" id="content{{ sticky.id }}">
-        Content: {{ sticky.content }}
+      <div id="sticky{{ sticky.id }}">
+        <div class="sticky_content" id="content{{ sticky.id }}">
+          Content: {{ sticky.content }}
+        </div>
       </div>
     {% endfor %}
   </div>
+hi
 {% endblock %}

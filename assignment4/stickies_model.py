@@ -4,7 +4,7 @@ import os
 import shelve
 
 from flask import Flask, request
-from flaskext.login import LoginManager
+from flaskext.login import UserMixin, AnonymousUser
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 
@@ -12,14 +12,18 @@ from jinja2 import FileSystemLoader
 # Model
 
 class User(UserMixin):
-    def __init__(self, name, id, active=True):
+    def __init__(self, name, id, passwd_hash, active=True):
         self.name = name
         self.id = id
+        self.pw_hash = passwd_hash
+        print self.pw_hash
         self.active = active
 
     def is_active(self):
         return self.active
 
+    def get_auth_token(self):
+        return make_secure_token(self.name, self.pw_hash)
 
 class Anonymous(AnonymousUser):
     name = u"Anonymous"
@@ -27,10 +31,11 @@ class Anonymous(AnonymousUser):
 
 class StickyNote(object):
     """Represent a sticky note."""
-    def __init__(self, user, position, content):
+    def __init__(self, user, position, content, id):
         self.user = user
         self.pos = position
         self.content = content
+        self.id = id
 
 
 class Content(object):
@@ -42,7 +47,7 @@ class Content(object):
 
 
 class TextContent(Content):
-    """Stores the content of a sticky note as a string."""
+    """Stores the text content of a sticky note as a string."""
     def __init__(self, text):
         self.content = text
     def get_content(self):
