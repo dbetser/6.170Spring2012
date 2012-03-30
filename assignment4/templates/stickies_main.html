@@ -3,11 +3,10 @@
   <div id="sticky_pane">
     {% for sticky in sticky_objects %}
       <div id="sticky{{ sticky.id }}">
-        <div class="sticky_content" id="content{{ sticky.id }}">
-          Content: {{ sticky.content }}
+        <div class="ui-widget-content" id="content{{ sticky.id }}">
+          <p> {{ sticky.content }} </P>
         </div>
       </div>
     {% endfor %}
   </div>
-hi
 {% endblock %}

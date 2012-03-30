@@ -16,7 +16,6 @@ class User(UserMixin):
         self.name = name
         self.id = id
         self.pw_hash = passwd_hash
-        print self.pw_hash
         self.active = active
 
     def is_active(self):

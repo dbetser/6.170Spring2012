@@ -5,13 +5,20 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="Author" content="Dina Betser, dbetser@mit.edu">
     <link rel="stylesheet" type="text/css" href="static/stickies.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js">
+	</script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js">
+	</script>
+	<script src="static/stickies.js"></script>
   </head>
   <body>
     <div id="header">
-      {% if current_user.is_authenticated() %}
-        Welcome, {{ current_user.name }} | <a href="{{ url_for('logout') }}">log out</a>
+
+      {% if current_user.name %}
+        Welcome to your stickies! | <a href="{{ url_for('logout') }}">log out</a>
       {% else %}
         You are not logged in | <a href="{{ url_for('login') }}">log in</a>
+        | <a href="{{ url_for('register') }}">register</a>
       {% endif %}
       {% for message in get_flashed_messages() %}
         <div class=flash>{{ message }}</div>

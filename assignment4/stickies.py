@@ -33,9 +33,9 @@ login_manager.refresh_view = 'reauth'
 
 @login_manager.user_loader
 def load_user(id):
-    db = shelve.open(app.config['DATABASE'])
-    username = db['id_name_map'][int(id)]
-    user = db['userinfo_map'][username]
+    db = shelve.open(app.config['DATABASE'], writeback=True)
+    username = db['id_name_map'].get(int(id))
+    user = db['userinfo_map'].get(username)
     db.close()
     return user
 
@@ -46,8 +46,8 @@ login_manager.setup_app(app)
 def reset_db():
     '''Initialize/reset the database.'''
     db = shelve.open(app.config['DATABASE'])
-    db['userinfo_map'] = {"Dina": stickies_model.User(u"Dina", 1, hash_pwd('a'))}
-    db['id_name_map'] = {1: "Dina"}
+    db['userinfo_map'] = {}
+    db['id_name_map'] = {}
     db['stickies_for_userid'] = {}
     db['current_userid'] = 0
     db.close()
@@ -56,7 +56,7 @@ def reset_db():
 # Whenever a user connects, we load the database.
 @app.before_request
 def before_request():
-    g.db = shelve.open(app.config['DATABASE'])
+    g.db = shelve.open(app.config['DATABASE'], writeback=True)
 
 # Close the database connection at the end of each request.
 @app.teardown_request
@@ -77,11 +77,9 @@ def hash_pwd(password):
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        print g.db
         assert ('username' in request.form and 'password' in request.form
                 and request.form['username'] not in g.db['id_name_map'].values())
         cur_id = g.db.get('current_userid')
-        print cur_id
         g.db['id_name_map'][cur_id] = request.form['username']
         user = stickies_model.User(
             request.form['username'],
@@ -91,10 +89,12 @@ def register():
         g.db['current_userid'] += 1
         remember = request.form.get('remember', 'no') == 'yes'
         if login_user(user, remember=remember):
+            session['username'] = user.name
+            print current_user.is_authenticated(), user.is_authenticated()
             flash('Logged in!')
             return redirect(request.args.get('next') or url_for('index'))
         else:
-            flash('Sorry, but you could not log in.')
+            flash('Sorry, but you could not register.')
     return render_template('register.html')
 
 
@@ -103,8 +103,6 @@ def login():
     print "logiin"
     if request.method == 'POST' and 'username' in request.form:
         username = request.form['username']
-        print username, g.db['id_name_map'], session
-        print username in g.db['id_name_map'].values()
         # Check if username exists.
         if username in g.db['id_name_map'].values():
             # Ensure that password matches expected password.
@@ -114,6 +112,7 @@ def login():
             if hash_pwd(request.form['password']) == user.pw_hash:
                 remember = request.form.get('remember', 'no') == 'yes'
                 if login_user(user, remember=remember):
+                    session['username'] = user.name
                     flash('Logged in!')
                     return redirect(request.args.get('next') or url_for('index'))
                 else:
@@ -138,6 +137,7 @@ def reauth():
 @app.route('/logout')
 @login_required
 def logout():
+    session['username'] = 'anonymous'
     logout_user()
     flash('Logged out.')
     return redirect(url_for('index'))
