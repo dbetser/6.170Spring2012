@@ -24,6 +24,14 @@ class User(UserMixin):
     def get_auth_token(self):
         return make_secure_token(self.name, self.pw_hash)
 
+    @property
+    def serialize(self):
+       """Return object data in easily serializeable format"""
+       return {
+           'id': self.id,
+           'name': self.name
+       }
+
 class Anonymous(AnonymousUser):
     name = u"Anonymous"
 
@@ -35,6 +43,15 @@ class StickyNote(object):
         self.pos = position
         self.content = content
         self.id = id
+    @property
+    def serialize(self):
+       """Return object data in easily serializeable format"""
+       return {
+           'user': self.user.serialize,
+           'pos': self.pos.serialize,
+           'content': self.content.get_content(),
+           'id': self.id
+       }
 
 
 class Content(object):
@@ -54,13 +71,20 @@ class TextContent(Content):
     def set_content(self, content):
         self.content = content
 
-
 class Position(object):
     """Stores the x, y, and z coordinates of a sticky note."""
     def __init__(self, x, y, z):
         self.x = x
         self.y = y
         self.z = z
+    @property
+    def serialize(self):
+       """Return object data in easily serializeable format"""
+       return {
+           'x': self.x,
+           'y': self.y,
+           'z': self.z
+    }
 
 
 if __name__ == '__main__':

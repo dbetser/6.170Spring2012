@@ -9,7 +9,8 @@ import os
 import shelve
 import sys
 
-from flask import Flask, render_template, redirect, url_for, flash, request, session, g
+from flask import (Flask, render_template, redirect, url_for, flash, request,
+                   jsonify, session, g)
 from flaskext.login import (LoginManager, current_user, login_required,
                             login_user, logout_user,
                             confirm_login, fresh_login_required)
@@ -48,8 +49,9 @@ def reset_db():
     db = shelve.open(app.config['DATABASE'])
     db['userinfo_map'] = {}
     db['id_name_map'] = {}
-    db['stickies_for_userid'] = {}
+    db['stickies_for_username'] = {}
     db['current_userid'] = 0
+    db['current_stickyid'] = 0
     db.close()
 
 
@@ -77,24 +79,28 @@ def hash_pwd(password):
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        assert ('username' in request.form and 'password' in request.form
-                and request.form['username'] not in g.db['id_name_map'].values())
-        cur_id = g.db.get('current_userid')
-        g.db['id_name_map'][cur_id] = request.form['username']
-        user = stickies_model.User(
-            request.form['username'],
-            g.db['current_userid'],
-            hash_pwd(request.form['password']))
-        g.db['userinfo_map'][request.form['username']] = user
-        g.db['current_userid'] += 1
-        remember = request.form.get('remember', 'no') == 'yes'
-        if login_user(user, remember=remember):
-            session['username'] = user.name
-            print current_user.is_authenticated(), user.is_authenticated()
-            flash('Logged in!')
-            return redirect(request.args.get('next') or url_for('index'))
+        assert 'username' in request.form and 'password' in request.form
+        if request.form['username'] in g.db['id_name_map'].values():
+            flash('Username already exists. Please pick another username.')
+            return False
         else:
-            flash('Sorry, but you could not register.')
+            cur_id = g.db.get('current_userid')
+            g.db['id_name_map'][cur_id] = request.form['username']
+            user = stickies_model.User(
+                request.form['username'],
+                g.db['current_userid'],
+                hash_pwd(request.form['password']))
+            g.db['userinfo_map'][request.form['username']] = user
+            g.db['current_userid'] += 1
+            return True
+#             remember = request.form.get('remember', 'no') == 'yes'
+#             if login_user(user, remember=remember):
+#                 session['username'] = user.name
+#                 print current_user.is_authenticated(), user.is_authenticated()
+#                 flash('Logged in!')
+#                 return redirect(request.args.get('next') or url_for('index'))
+#             else:
+#                 flash('Sorry, but you could not register.')
     return render_template('register.html')
 
 
@@ -141,6 +147,29 @@ def logout():
     logout_user()
     flash('Logged out.')
     return redirect(url_for('index'))
+
+def get_serialized_stickies_for_user(username):
+ return jsonify(
+     sticky_objects=[
+         x.serialize for x in g.db['stickies_for_username'].get(username)])
+
+@app.route('/add_sticky', methods=["POST"])
+@login_required
+def add_sticky(text_content, position):
+    user = g.db['userinfo_map'].get(session['username'])
+    new_sticky = stickies_model.StickyNote(
+        user,
+        stickies_model.Position(position['x'], position['y'], position['z']),
+        stickies_model.TextContent(text_content),
+        g.db['userinfo_map'].get('current_stickyid')
+    )
+    g.db['userinfo_map']['current_stickyid'] += 1
+    if g.db['stickies_for_username'].get(session['username']) is None:
+        g.db['stickies_for_username'][session['username']] = [new_sticky]
+    else:
+        g.db['stickies_for_username'].get(session['username']).append(new_sticky)
+    print g.db['stickies_for_username'].get(session['username'])
+    return get_serialized_stickies_for_user(session['username'])
 
 
 if __name__ == '__main__':
