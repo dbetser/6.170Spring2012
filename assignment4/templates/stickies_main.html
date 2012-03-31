@@ -1,14 +1,22 @@
 {% extends 'stickies_layout.html' %}
 {% block content %}
   <div id="sticky_control_pane">
-    <button id="add">Add Sticky</button>
+    <button id="addNote">Add Sticky</button>
+  </div>
+  <div id="newNote" style="display:none">
+    <form action="/add_sticky" method="post" id="note-form">
+      <label for="note-body">Text of the note:</label>
+      <textarea name="note-body" id="note-body">
+      </textarea>
+      <button id="note-submit">Submit</button>
+    </form>
   </div>
   <div id="sticky_pane">
     {% for sticky in sticky_objects %}
-      <div id="sticky{{ sticky.id }}">
-        <div class="ui-widget-content" id="content{{ sticky.id }}">
-          <p> {{ sticky.content }} </P>
-        </div>
+      <div class="ui-widget-content ui-draggable" id="sticky{{ sticky.id }}">
+        <p> {{ sticky.content.get_content() }} </p>
+        <button id="edit{{ sticky.id }}">Edit</button>
+        <button id="delete{{ sticky.id }}">Delete</button>
       </div>
     {% endfor %}
   </div>

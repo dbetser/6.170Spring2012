@@ -11,41 +11,33 @@ var debug = 1;
 $(document).ready(function () {
 
     // Add click handlers for add sticky button.
-    $("#add").click(function() {
+    $('#addNote').click(function() {
         if (debug > 0) {
-            console.log("Handler for add.click() called.");
+            console.log('Handler for add note called.');
         }
-        var data = {};
+
+        $('#newNote').show();
+    });
+
+    $('#note-form').submit(function(event) {
+        if (debug > 0) {
+            console.log('Handler for note submit called.');
+        }
+        event.preventDefault();
+        console.log($('#note-body').val());
+        var data = {note_body: $('#note-body').val()};
         $.post(
             '/add_sticky',
             data,
             function(response) {
                 console.log(response);
+                $('#newNote').hide();
             }
         );
+
     });
 
-    $('#register').submit(function() {
-        if (debug > 0) {
-            console.log("Handler for add.click() called.");
-        }
-        var data = {};
-        $.post(
-            '/register',
-            data,
-            function(response) {
-                console.log("registered");
-                if (response === true) {
-                    $.post(
-                        '/login',
-                        data,
-                        function(login_resp) {
-                            console.log("loggedin");
-                        }
-                    );
-                }
-            }
-        );
-    });
+    $( "#sticky_pane div" ).draggable({ stack: "#sticky_pane div" });
+
 });
 

@@ -51,18 +51,7 @@ The following state machine describes how the state of the application changes a
 
 \subsection{Issues Arising}
 \begin{itemize}
-\item How to implement undo and redo.\\
-This required adding a way for a user to ``commit a transaction'', which was done using the ``Submit'' button. The Submit button ensured that the user was done with the current play before attempting to commit a move to change the state of the model. Upon submit, the state of the board was also recorded to the BoardStateHistory array. That array served as a stack to navigate during undo/redo. A pointer into the stack was kept such that the pointer always pointed to the last move committed, which could be decremented to get to previous states upon undo, and which would be incremented upon redo. In that way, the entire state of the board can be kept with every game. One downside of this approach is that within the undo/redo history there is no branching, therefore, if a sequence of moves is played that is then undone to the initial starting board, future moves can still access all that history, which may not be ideal.
-\item A random player is selected to go first.\\
-In Othello, black always goes first. In my implementation of the versus human mode, this is no problem because both players are human so either player can be assigned to the black player. However, in versus computer mode, this means that the computer has a slight advantage since the second player to move always has the advantage in Reversi.
-\item Button display.\\
-The four gameplay buttons are always displayed as active in the UI, even if they are not enabled. It might have been nice to grey out the buttons when they are not applicable, such as the ``Submit'' button if no box is selected, but instead the same effect is achieved through the use of alerts to prevent players from submitting without selecting a box first.
-\item Computer player's algorithm.\\
-As the assignment specified, the goal of this project was not to build an AI, so I focused on structuring the code well instead of making the \texttt{pickPlayPosition} function do anything but select a random valid move.
-\item  How to signify a valid move.\\
-Currently, users are prevented from clicking a box that is invalid because an alert pops up when they click an invalid box. However, this is not as usable as possible; the number of keystrokes needed to remove the alert that pops up is larger than if a user knew in advance which spaces were valid in the first place. It might be nice to include that by changing the color of the box during hover based on whether or not the move under the cursor is valid.
-\item Shortcut enter key to submit a move.\\
-It is possible to use the enter key to submit a move in addition to clicking the ``Submit'' button. This is not displayed in the UI because it might clutter the screen. Power users might appreciate this information, however, and it might be a good thing to include in future iterations of the interface.
+\item How to implement login--use flask-login or not. too buggy
 \end{itemize}
 
 \subsection{Critique}
