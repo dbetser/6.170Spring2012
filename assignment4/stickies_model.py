@@ -9,8 +9,6 @@ from jinja2 import Environment
 from jinja2 import FileSystemLoader
 
 
-# Model
-
 class User(UserMixin):
     def __init__(self, name, id, passwd_hash, active=True):
         self.name = name
@@ -31,6 +29,7 @@ class User(UserMixin):
            'id': self.id,
            'name': self.name
        }
+
 
 class Anonymous(AnonymousUser):
     name = u"Anonymous"
@@ -70,6 +69,7 @@ class TextContent(Content):
         return self.content
     def set_content(self, content):
         self.content = content
+
 
 class Position(object):
     """Stores the x, y, and z coordinates of a sticky note."""

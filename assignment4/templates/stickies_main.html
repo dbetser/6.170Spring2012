@@ -6,14 +6,13 @@
   <div id="newNote" style="display:none">
     <form action="/add_sticky" method="post" id="note-form">
       <label for="note-body">Text of the note:</label>
-      <textarea name="note-body" id="note-body">
-      </textarea>
+      <textarea name="note-body" id="note-body"></textarea>
       <button id="note-submit">Submit</button>
     </form>
   </div>
   <div id="sticky_pane">
     {% for sticky in sticky_objects %}
-      <div class="ui-widget-content ui-draggable" id="sticky{{ sticky.id }}">
+      <div class="ui-widget-content" id="sticky{{ sticky.id }}">
         <p> {{ sticky.content.get_content() }} </p>
         <button id="edit{{ sticky.id }}">Edit</button>
         <button id="delete{{ sticky.id }}">Delete</button>

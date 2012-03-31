@@ -6,7 +6,6 @@ import main
 
 def reset_db():
     '''Initialize/reset the database.'''
-
     db = shelve.open(main.DATABASE)
     db['userinfo_map'] = {}
     db['id_name_map'] = {}

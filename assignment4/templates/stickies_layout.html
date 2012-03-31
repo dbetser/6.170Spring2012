@@ -13,7 +13,7 @@
   </head>
   <body>
     <div id="header">
-      {% if session.logged_in%}
+      {% if session.logged_in %}
         Welcome, {{ session.username }}! | <a href="{{ url_for('logout') }}">log out</a>
       {% else %}
         You are not logged in | <a href="{{ url_for('login') }}">log in</a>
