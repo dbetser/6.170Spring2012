@@ -1,7 +1,6 @@
 # Copyright 2012 Dina Betser.
 # Network Stickies main script for 6.170 Assignment #4.
 
-#import jinja_wrapper
 import stickies_model
 
 import hashlib
@@ -22,17 +21,6 @@ app.debug = True
 app.secret_key = 'secretkey'
 
 
-def reset_db():
-    '''Initialize/reset the database.'''
-    db = shelve.open(app.config['DATABASE'])
-    db['userinfo_map'] = {}
-    db['id_name_map'] = {}
-    db['stickies_for_username'] = {}
-    db['current_userid'] = 0
-    db['current_stickyid'] = 0
-    db.close()
-
-
 # Whenever a user connects, we load the database.
 @app.before_request
 def before_request():
@@ -48,9 +36,8 @@ def teardown_request(exception):
 @app.route('/')
 def index():
     stickies = []
-    if session.get('logged_in') != None:
+    if session.get('logged_in') is not None:
         username = session.get('username')
-        print g.db['stickies_for_username'].get(username)
         stickies = g.db['stickies_for_username'].get(username)
     return render_template('stickies_main.html', sticky_objects=stickies)
 
