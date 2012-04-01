@@ -9,6 +9,9 @@
 	</script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js">
 	</script>
+	<script>
+      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+	</script>
 	<script src="static/stickies.js"></script>
   </head>
   <body>

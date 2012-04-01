@@ -1,38 +1,20 @@
 # Copyright 2012 Dina Betser.
-# Network Stickies model for 6.170 Assignment #4.
-import os
-import shelve
+# Network Stickies model classes for 6.170 Assignment #4.
 
-from flask import Flask, request
-from flaskext.login import UserMixin, AnonymousUser
-from jinja2 import Environment
-from jinja2 import FileSystemLoader
-
-
-class User(UserMixin):
-    def __init__(self, name, id, passwd_hash, active=True):
+class User(object):
+    """Class representing a user of the stickies web application."""
+    def __init__(self, name, id, passwd_hash):
         self.name = name
         self.id = id
         self.pw_hash = passwd_hash
-        self.active = active
-
-    def is_active(self):
-        return self.active
-
-    def get_auth_token(self):
-        return make_secure_token(self.name, self.pw_hash)
 
     @property
     def serialize(self):
-       """Return object data in easily serializeable format"""
+       """Return object data in easily serializeable format."""
        return {
            'id': self.id,
            'name': self.name
        }
-
-
-class Anonymous(AnonymousUser):
-    name = u"Anonymous"
 
 
 class StickyNote(object):
@@ -44,7 +26,7 @@ class StickyNote(object):
         self.id = id
     @property
     def serialize(self):
-       """Return object data in easily serializeable format"""
+       """Return object data in easily serializeable format."""
        return {
            'user': self.user.serialize,
            'pos': self.pos.serialize,
@@ -79,7 +61,7 @@ class Position(object):
         self.z = z
     @property
     def serialize(self):
-       """Return object data in easily serializeable format"""
+       """Return object data in easily serializeable format."""
        return {
            'x': self.x,
            'y': self.y,

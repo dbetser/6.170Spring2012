@@ -27,7 +27,7 @@ $(document).ready(function () {
         console.log($('#note-body').val());
         var data = {note_body: $('#note-body').val()};
         $.post(
-            '/add_sticky',
+            $SCRIPT_ROOT + '/add_sticky',
             data,
             function(response) {
                 console.log(response);
@@ -37,7 +37,55 @@ $(document).ready(function () {
 
     });
 
-    $( "#sticky_pane div" ).draggable({ stack: "#sticky_pane div" });
+    $('.deleteButton').click(function() {
+        var idStr = $(this).attr('id');
+        if (debug > 0) {
+            console.log('Handler for delete note called on id ', idStr);
+        }
+        var id = parseInt(idStr.split('_')[1]);
+        var data = {note_id: id};
+        $.post(
+            $SCRIPT_ROOT + '/delete_sticky',
+            data,
+            function(response) {
+                console.log(response);
+            }
+        );
+    });
+
+    $('.editButton').click(function() {
+        var idStr = $(this).attr('id');
+        if (debug > 0) {
+            console.log('Handler for edit note called on id ', idStr);
+        }
+        var id = parseInt(idStr.split('_')[1]);
+        var data = {note_id: id, };
+        $.post(
+            $SCRIPT_ROOT + '/edit_sticky',
+            data,
+            function(response) {
+                console.log(response);
+            }
+        );
+    });
+
+    $("#sticky_pane div").draggable({
+        stack: "#sticky_pane div",
+        stop: function(event, ui) {
+            var stop_pos = $(this).position();
+            var idStr = $(this).attr('id');
+            var id = parseInt(idStr.split('_')[1]);
+            var data = {note_id: id, x: stop_pos.left, y: stop_pos.top,
+                        z: $(this).css("z-index")};
+            $.post(
+                $SCRIPT_ROOT + '/move_sticky',
+                data,
+                function(response) {
+                    console.log(response);
+                }
+            );
+        }
+    });
 
 });
 
