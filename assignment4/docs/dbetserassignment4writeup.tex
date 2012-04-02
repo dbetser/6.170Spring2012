@@ -46,7 +46,7 @@ At first, I thought it would make the most sense to allow users to create sticki
 \item Editing notes on the fly or using a popup dialog.\\
 It would have been possible to pop up a dialog box whenever a user wanted to edit or add a new sticky. However, this is less usable, as it covers the window and prevents the user from interacting with the rest of the interface. Therefore, I decided to open up a textarea that allowed for editing but didn't prevent interaction with the rest of the functionalities of the application.
 \item Status of server -- should it be stateless?\\
-In class we discussed that the paradigm for servers is for them to be stateless. For this reason, I refrained from storing a map of logged-in statuses for users in the server and let flask deal with session management on a per-request basis.
+In class we discussed that the paradigm for servers is for them to be stateless. For this reason, I refrained from storing a map of logged-in statuses for users in the server and let Flask deal with session management on a per-request basis.
 \end{itemize}
 
 \subsection{Issues Arising}
@@ -62,6 +62,13 @@ This project implemented separation of concerns by using the MVC design pattern.
 
 The interface is not particularly visually appealing, and the stickies are somewhat garishly yellow, but it meets the specifications. If I had more time, I would improve the CSS styling of the interface to make it more aesthetically pleasing. I would also prefer to fix the issue where stickies ``jump'' upon save.
 
+I learned a lot about building a web application from the ground-up from doing this project and it served as a good way to get acquainted with shelve, Flask, and remind myself about using GET and POST requests, and HTTP status codes. I now have a new favorite HTTP Status (401 -- see figure below)!
+
+\begin{center}
+\includegraphics[width=4in]{dot/401.jpg}
+\label{fig:401} 
+\end{center}
+
 \section{Specification}
 \subsection{Overview}
 This application is a web application written using HTML/CSS/JavaScript on the client-side, and the Python Flask framework (with shelve for persistent storage) on the server side.
@@ -71,9 +78,9 @@ The application allows users to store and edit stickies containing text, and to 
 \subsection{Key Features}
 The key features of this implementation of the 6.170 Network Stickies implementation are:
 \begin{itemize}
-\item Users can access stickies their stickies from any browser. Login information is stored in the backend so the scheme is tolerant of browser failures.
+\item Users can access their stickies from any browser. Login information is stored in the backend so the scheme is tolerant of browser failures.
 \item Smooth dragging allows users to arrange stickies anywhere in the field of view simply by dragging the mouse. The position of stickies on the page is stored across sessions.
-\item Features on the page are visible when applicable, and hidden when not. For instance, the when a user clicks ``Edit'' on a sticky, the editing box appears for the user to edit. There are no popups or alerts, which generally hinder visibility.
+\item Features on the page are visible when applicable, and hidden when not. For instance, when a user clicks ``Edit'' on a sticky, the editing box appears for the user to edit. There are no popups or alerts, which generally hinder visibility.
 \item An external script \texttt{init\_db.py} allows for refreshing the database for testing purposes.
 \item The size of the sticky is dependent on the amount of text entered, making the application more flexible.
 \item Passwords are not stored in the backend in cleartext, making the application more secure.
@@ -98,7 +105,7 @@ No functionalities can be accessed without logging in first.
 \section{Implementation}
 
 \subsection{Module Dependency Diagram}
-This code's modules can be seen in the context of the Model-View-Controller framework, which is roughly related to how the files were defined. The \texttt{stickies.js} file contains the Controller, while \texttt{stickies\_model.py} contains the model objects, which includes the objects defined in the object model above. Concerns are separated cleanly in that no code in the model touches anything in the user interface. The model is further stored in a database where user information is kept persistently. The \texttt{main.py} serves to wrap the database and return views to the client upon requests from the browser. The Controller consists of functions that handle events in the UI, such as the form submission and click handling functions. The controller is responsible for sending POST requests to the flask application server.
+This code's modules can be seen in the context of the Model-View-Controller framework, which is roughly related to how the files were defined. The \texttt{stickies.js} file contains the Controller, while \texttt{stickies\_model.py} contains the model objects, which includes the objects defined in the object model above. Concerns are separated cleanly in that no code in the model touches anything in the user interface. The model is further stored in a database where user information is kept persistently. The \texttt{main.py} serves to wrap the database and return views to the client upon requests from the browser. The Controller consists of functions that handle events in the UI, such as the form submission and click handling functions. The controller is responsible for sending POST requests to the Flask application server.
 
 This code is written using the jQuery and jQuery UI libraries for DOM handling and convenience functions. The figure below shows the module dependency diagram.
 
@@ -127,7 +134,7 @@ In addition, manual testing was done to ensure that the application functioned a
 \subsection{Rationale and Conclusions}
 This project fulfills the requirements of the assignment. The application runs as desired, is well-commented, and demonstrates separation of concerns.
 
-Many of the design decisions implemented made the interface easier and cleaner to use, which improved the overall user experience. However, there is more work to be done to improve the appearance of the application, but overall it served as a good learning experience for using the Python flask framework.
+Many of the design decisions implemented made the interface easier and cleaner to use, which improved the overall user experience. There is more work to be done to improve the appearance of the application, but overall it served as a good learning experience for using the Python Flask framework.
 
 \end{document}
 
