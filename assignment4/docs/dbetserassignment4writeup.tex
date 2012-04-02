@@ -41,17 +41,25 @@ The following state machine describes how the state of the application changes a
 \section{Design Notes}
 \subsection{Key Challenges}
 \begin{itemize}
-\item Displaying/deleting notes
-\item Need to be logged in to play?
-\item Editing notes on the fly or using a popup dialog.
-\item Storing the state in the frontend for a dirty sticky.
-\item Save on login and/or save.
-\item Status of server. Should it be stateless?
+\item Displaying/deleting notes\\
+
+\item Does a user need to be logged in to create stickies?\\
+
+\item Editing notes on the fly or using a popup dialog.\\
+
+\item Storing the state in the frontend for a dirty sticky.\\
+
+\item Save all ``current stickies'' on login.\\
+
+\item Status of server -- should it be stateless?\\
+
 \end{itemize}
 
 \subsection{Issues Arising}
 \begin{itemize}
-\item How to implement login--use flask-login or not. too buggy
+\item Implementing login -- using flask-login module or not. \\
+too buggy
+\item Using ajax for adding stickies
 \end{itemize}
 
 \subsection{Critique}
@@ -64,17 +72,18 @@ The implementation chose more sophisticated notions of undo/redo than required; 
 The implementation also allowed a user to change play mode in the middle of the game, something that many implementations for this project did not.
 \section{Specification}
 \subsection{Overview}
-This application is a web application written using HTML/CSS/JavaScript that works as a browser-based implementation of the Reversi Game. In addition to an implementation of the general game logic, the project included an interactive game board that allowed up to two human players to play the game. The application allows users to undo and redo moves such that previous states of the board are restored, and alerts the users when the game has finished, displaying who won the game. Two modes of play are supported and a game can be aborted/restarted at any point during game play.
+This application is a web application written using HTML/CSS/JavaScript on the client-side, and the Python Flask framework (with shelve for persistent storage) on the server side.
+
+In addition to an implementation of the general game logic, the project included an interactive game board that allowed up to two human players to play the game. The application allows users to undo and redo moves such that previous states of the board are restored, and alerts the users when the game has finished, displaying who won the game. Two modes of play are supported and a game can be aborted/restarted at any point during game play.
 
 \subsection{Key Features}
-The key features of this implementation of the 6.170 Othello implementation are:
+The key features of this implementation of the 6.170 Network Stickies implementation are:
 \begin{itemize}
-\item Minimalist, intuitive interface for scanning through photos in the gallery.
-\item User-friendly box selection that allows users to change their minds before committing.
-\item Sophisticated undo/redo mechanism.
-\item Visually appealing interface with visible buttons for managing the state of the application.
-\item Restart that works from virtually any state in the application.
+\item Ability for users to access stickies from any browser.
+\item Smooth dragging feature to arrange stickies anywhere in the field of view.
+\item 
 \end{itemize}
+
 \subsection{User Manual}
 The running application can be accessed at http://web.mit.edu/~dbetser/www/6.170/assignment3/reversi.html.
 

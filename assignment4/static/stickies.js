@@ -21,10 +21,11 @@ $(document).ready(function () {
         if (debug > 0) {
             console.log('Handler for add note called.');
         }
-
         $('#newNote').show();
     });
 
+    // Save the new sticky content to the model and hide the textarea for
+    // editing the text of the new sticky.
     $('#note-form').submit(function(event) {
         if (debug > 0) {
             console.log('Handler for note submit called.');
@@ -36,13 +37,14 @@ $(document).ready(function () {
             $SCRIPT_ROOT + '/add_sticky',
             data,
             function(response) {
-                console.log(response);
                 $('#newNote').hide();
                 window.location.replace($SCRIPT_ROOT);
             }
         );
     });
 
+    // Save the sticky content to the model and hide the textarea for
+    // updating the text of the sticky.
     $('#edit-note-form').submit(function(event) {
         if (debug > 0) {
             console.log('Handler for edit note submit called.');
@@ -50,20 +52,18 @@ $(document).ready(function () {
         event.preventDefault();
         var body = $('#edit-note-body').val();
         var id = $('#sticky-to-update').val();
-        console.log("submting for id", id, body);
         var data = {note_id: id, note_body: body};
-        console.log(data);
         $.post(
             $SCRIPT_ROOT + '/edit_sticky',
             data,
             function(response) {
-                console.log(response);
                 $('#editNote').hide();
                 window.location.replace($SCRIPT_ROOT);
             }
         );
     });
 
+    // Remove the given sticky when delete button is clicked.
     $('.deleteButton').click(function() {
         var id = getStickyId($(this).attr('id'));
         if (debug > 0) {
@@ -74,12 +74,13 @@ $(document).ready(function () {
             $SCRIPT_ROOT + '/delete_sticky',
             data,
             function(response) {
-                console.log(response);
                 window.location.replace($SCRIPT_ROOT);
             }
         );
     });
 
+    // Add listener to all edit buttons that pop open a textarea for editing the
+    // sticky's content.
     $('.editButton').click(function() {
         var id = getStickyId($(this).attr('id'));
         if (debug > 0) {
@@ -90,7 +91,6 @@ $(document).ready(function () {
             $SCRIPT_ROOT + '/get_sticky_content',
             data,
             function(response) {
-                console.log(response);
                 $('#sticky-to-update').val(id);
                 $('#edit-note-body').val(response);
                 $('#editNote').show();
@@ -114,7 +114,6 @@ $(document).ready(function () {
                 $SCRIPT_ROOT + '/move_sticky',
                 data,
                 function(response) {
-                    console.log(response);
                     window.location.replace($SCRIPT_ROOT);
                 }
             );

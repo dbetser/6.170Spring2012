@@ -1,3 +1,21 @@
-#sticky_pane div { width: 90px; height: 90px; padding: 0.5em; float: left; margin: 0 10px 10px 0; }
-#sticky_pane { clear:both; float:left; width: 368px; height: 120px; }
-p { clear:both; margin:0; padding:1em 0; }
+#sticky_pane div {
+ width: 100px;
+ padding: 0.5em;
+ float: left;
+ margin: 0 10px 10px 0;
+}
+
+#sticky_pane {
+ clear:both;
+ float:left;
+}
+
+p {
+ clear:both;
+ margin:0;
+ padding:1em 0;
+}
+
+.sticky-note {
+ background-color: yellow;
+}

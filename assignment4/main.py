@@ -9,7 +9,7 @@ import shelve
 import sys
 
 from flask import (Flask, render_template, redirect, url_for, flash, request,
-                   jsonify, session, g)
+                   jsonify, session, g, abort)
 
 # Configuration.
 DATABASE = 'db/stickies_database.db'
@@ -20,6 +20,7 @@ app.config.from_object(__name__)
 app.debug = True
 app.secret_key = 'secretkey'
 
+debug_bool = True
 
 # Whenever a user connects, we load the database.
 @app.before_request
@@ -99,9 +100,7 @@ def get_serialized_stickies_for_user(username):
 @app.route('/add_sticky', methods=['POST'])
 def add_sticky():
     if not session.get('logged_in'):
-        flash('You must be logged in to use this functionality.')
         abort(401)
-    print request.form['note_body']
     user = g.db['userinfo_map'].get(session['username'])
     new_sticky = stickies_model.StickyNote(
         user,
@@ -111,7 +110,6 @@ def add_sticky():
     )
     g.db['current_stickyid'] += 1
     g.db['stickies_for_username'].get(session['username']).append(new_sticky)
-    print g.db['stickies_for_username'].get(session['username'])
     return redirect(url_for('index'))
 
 
@@ -131,15 +129,13 @@ def remove_sticky_from_stickylist(stickies, id):
 @app.route('/delete_sticky', methods=['POST'])
 def delete_sticky():
     if not session.get('logged_in'):
-        flash('You must be logged in to use this functionality.')
         abort(401)
-    print request.form['note_id']
     msg = remove_sticky_from_stickylist(
         g.db['stickies_for_username'].get(session['username']),
         request.form['note_id']
     )
-    flash(msg)
-    print g.db['stickies_for_username'].get(session['username'])
+    if debug_bool:
+        print msg
     return redirect(url_for('index'))
 
 @app.route('/get_sticky_content', methods=['POST'])
@@ -147,7 +143,6 @@ def get_sticky_content():
     if not session.get('logged_in'):
         flash('You must be logged in to use this functionality.')
         abort(401)
-    print request.form['note_id']
     return get_sticky_text(
         g.db['stickies_for_username'].get(session['username']),
         request.form['note_id']
@@ -168,17 +163,13 @@ def get_sticky_text(stickies, id):
 @app.route('/move_sticky', methods=['POST'])
 def move_sticky():
     if not session.get('logged_in'):
-        flash('You must be logged in to use this functionality.')
         abort(401)
-    print request.form['note_id']
     msg = update_sticky(
         g.db['stickies_for_username'].get(session['username']),
         request.form['note_id'], None,
         stickies_model.Position(request.form['x'], request.form['y'],
                                 request.form['z'])
     )
-    flash(msg)
-    print g.db['stickies_for_username'].get(session['username'])
     return redirect(url_for('index'))
 
 def update_sticky(stickies, id, new_text, new_pos):
@@ -198,23 +189,20 @@ def update_sticky(stickies, id, new_text, new_pos):
     if new_pos is not None:
         sticky_instance.pos = new_pos
         msg += 'Moved sticky with id ' + str(id) + ' to position ' + str(new_pos) + '.'
-    print msg
+    if debug_bool:
+        print msg
     return msg
 
 @app.route('/edit_sticky', methods=['POST'])
 def edit_sticky():
     print "edit sticky reached", session
     if not session.get('logged_in'):
-        print "not logged in"
-        flash('You must be logged in to use this functionality.')
         abort(401)
     print request.form['note_id']
     msg = update_sticky(
         g.db['stickies_for_username'].get(session['username']),
         request.form['note_id'], request.form['note_body'], None
     )
-    flash(msg)
-    print g.db['stickies_for_username'].get(session['username'])
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
