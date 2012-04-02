@@ -4,9 +4,9 @@ import shelve
 import main
 
 
-def reset_db():
+def reset_db(db_name):
     '''Initialize/reset the database.'''
-    db = shelve.open(main.DATABASE)
+    db = shelve.open(db_name)
     db['userinfo_map'] = {}
     db['id_name_map'] = {}
     db['stickies_for_username'] = {}
@@ -16,4 +16,4 @@ def reset_db():
 
 
 if __name__ == '__main__':
-    reset_db()
+    reset_db(main.DATABASE)

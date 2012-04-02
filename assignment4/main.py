@@ -20,7 +20,6 @@ app.config.from_object(__name__)
 app.debug = True
 app.secret_key = 'secretkey'
 
-debug_bool = True
 
 # Whenever a user connects, we load the database.
 @app.before_request
@@ -122,9 +121,9 @@ def remove_sticky_from_stickylist(stickies, id):
             idx_to_remove = idx
     if idx_to_remove is not None:
         stickies.pop(idx_to_remove)
-        return 'Sticky with id ', id, 'was removed successfully.'
+        return 'Sticky with id ' + id + ' was removed successfully.'
     else:
-        return 'Sticky with id ', id, ' could not be found.'
+        return 'Sticky with id ' + id + ' could not be found.'
 
 @app.route('/delete_sticky', methods=['POST'])
 def delete_sticky():
@@ -134,7 +133,7 @@ def delete_sticky():
         g.db['stickies_for_username'].get(session['username']),
         request.form['note_id']
     )
-    if debug_bool:
+    if app.debug:
         print msg
     return redirect(url_for('index'))
 
@@ -189,7 +188,7 @@ def update_sticky(stickies, id, new_text, new_pos):
     if new_pos is not None:
         sticky_instance.pos = new_pos
         msg += 'Moved sticky with id ' + str(id) + ' to position ' + str(new_pos) + '.'
-    if debug_bool:
+    if app.debug:
         print msg
     return msg
 
