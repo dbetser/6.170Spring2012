@@ -10,11 +10,11 @@ class User(object):
 
     @property
     def serialize(self):
-       '''Return object data in easily serializeable format.'''
-       return {
-           'id': self.id,
-           'name': self.name
-       }
+        '''Return object data in easily serializeable format.'''
+        return {
+            'id': self.id,
+            'name': self.name
+        }
 
 
 class StickyNote(object):
@@ -26,13 +26,13 @@ class StickyNote(object):
         self.id = id
     @property
     def serialize(self):
-       '''Return object data in easily serializeable format.'''
-       return {
-           'user': self.user.serialize,
-           'pos': self.pos.serialize,
-           'content': self.content.get_content(),
-           'id': self.id
-       }
+        '''Return object data in easily serializeable format.'''
+        return {
+            'user': self.user.serialize,
+            'pos': self.pos.serialize,
+            'content': self.content.get_content(),
+            'id': self.id
+        }
 
 
 class Content(object):
@@ -63,13 +63,9 @@ class Position(object):
         return 'Position(' + self.x + ', ' + self.y + ', ' + self.z + ')'
     @property
     def serialize(self):
-       '''Return object data in easily serializeable format.'''
-       return {
-           'x': self.x,
-           'y': self.y,
-           'z': self.z
-    }
-
-
-if __name__ == '__main__':
-    app.run()
+        '''Return object data in easily serializeable format.'''
+        return {
+            'x': self.x,
+            'y': self.y,
+            'z': self.z
+        }

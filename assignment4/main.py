@@ -163,7 +163,7 @@ def get_sticky_text(stickies, id):
 def move_sticky():
     if not session.get('logged_in'):
         abort(401)
-    msg = update_sticky(
+    update_sticky(
         g.db['stickies_for_username'].get(session['username']),
         request.form['note_id'], None,
         stickies_model.Position(request.form['x'], request.form['y'],
@@ -198,7 +198,7 @@ def edit_sticky():
     if not session.get('logged_in'):
         abort(401)
     print request.form['note_id']
-    msg = update_sticky(
+    update_sticky(
         g.db['stickies_for_username'].get(session['username']),
         request.form['note_id'], request.form['note_body'], None
     )
