@@ -96,7 +96,7 @@ def get_serialized_stickies_for_user(username):
         sticky_objects=[
             x.serialize for x in g.db['stickies_for_username'].get(username)])
 
-@app.route('/add_sticky', methods=["POST"])
+@app.route('/add_sticky', methods=['POST'])
 def add_sticky():
     if not session.get('logged_in'):
         flash('You must be logged in to use this functionality.')
@@ -114,6 +114,108 @@ def add_sticky():
     print g.db['stickies_for_username'].get(session['username'])
     return redirect(url_for('index'))
 
+
+def remove_sticky_from_stickylist(stickies, id):
+    '''Helper to remove the sticky with the given id from the stickies list.'''
+    idx_to_remove = None
+    for idx in range(len(stickies)):
+        # Type of id is unicode, so must be cast to an int.
+        if stickies[idx].id == int(id):
+            idx_to_remove = idx
+    if idx_to_remove is not None:
+        stickies.pop(idx_to_remove)
+        return 'Sticky with id ', id, 'was removed successfully.'
+    else:
+        return 'Sticky with id ', id, ' could not be found.'
+
+@app.route('/delete_sticky', methods=['POST'])
+def delete_sticky():
+    if not session.get('logged_in'):
+        flash('You must be logged in to use this functionality.')
+        abort(401)
+    print request.form['note_id']
+    msg = remove_sticky_from_stickylist(
+        g.db['stickies_for_username'].get(session['username']),
+        request.form['note_id']
+    )
+    flash(msg)
+    print g.db['stickies_for_username'].get(session['username'])
+    return redirect(url_for('index'))
+
+@app.route('/get_sticky_content', methods=['POST'])
+def get_sticky_content():
+    if not session.get('logged_in'):
+        flash('You must be logged in to use this functionality.')
+        abort(401)
+    print request.form['note_id']
+    return get_sticky_text(
+        g.db['stickies_for_username'].get(session['username']),
+        request.form['note_id']
+    )
+
+def get_sticky_text(stickies, id):
+    '''Helper to get the text content of a sticky in the database.'''
+    sticky_idx = None
+    for idx in range(len(stickies)):
+        # Type of id is unicode, so must be cast to an int.
+        if stickies[idx].id == int(id):
+            sticky_idx = idx
+    if sticky_idx is None: # TODO error handling
+        return None
+    sticky_instance = stickies[sticky_idx]
+    return sticky_instance.content.get_content()
+
+@app.route('/move_sticky', methods=['POST'])
+def move_sticky():
+    if not session.get('logged_in'):
+        flash('You must be logged in to use this functionality.')
+        abort(401)
+    print request.form['note_id']
+    msg = update_sticky(
+        g.db['stickies_for_username'].get(session['username']),
+        request.form['note_id'], None,
+        stickies_model.Position(request.form['x'], request.form['y'],
+                                request.form['z'])
+    )
+    flash(msg)
+    print g.db['stickies_for_username'].get(session['username'])
+    return redirect(url_for('index'))
+
+def update_sticky(stickies, id, new_text, new_pos):
+    '''Helper to update attributes of a sticky in the database.'''
+    sticky_idx = None
+    for idx in range(len(stickies)):
+        # Type of id is unicode, so must be cast to an int.
+        if stickies[idx].id == int(id):
+            sticky_idx = idx
+    if sticky_idx is None:
+        return 'Could not find sticky with id ' + id
+    sticky_instance = stickies[sticky_idx]
+    msg = ''
+    if new_text is not None:
+        sticky_instance.content.set_content(new_text)
+        msg += 'Updated content of sticky with id ' + str(id) + '. '
+    if new_pos is not None:
+        sticky_instance.pos = new_pos
+        msg += 'Moved sticky with id ' + str(id) + ' to position ' + str(new_pos) + '.'
+    print msg
+    return msg
+
+@app.route('/edit_sticky', methods=['POST'])
+def edit_sticky():
+    print "edit sticky reached", session
+    if not session.get('logged_in'):
+        print "not logged in"
+        flash('You must be logged in to use this functionality.')
+        abort(401)
+    print request.form['note_id']
+    msg = update_sticky(
+        g.db['stickies_for_username'].get(session['username']),
+        request.form['note_id'], request.form['note_body'], None
+    )
+    flash(msg)
+    print g.db['stickies_for_username'].get(session['username'])
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -2,7 +2,7 @@
 # Network Stickies model classes for 6.170 Assignment #4.
 
 class User(object):
-    """Class representing a user of the stickies web application."""
+    '''Class representing a user of the stickies web application.'''
     def __init__(self, name, id, passwd_hash):
         self.name = name
         self.id = id
@@ -10,7 +10,7 @@ class User(object):
 
     @property
     def serialize(self):
-       """Return object data in easily serializeable format."""
+       '''Return object data in easily serializeable format.'''
        return {
            'id': self.id,
            'name': self.name
@@ -18,7 +18,7 @@ class User(object):
 
 
 class StickyNote(object):
-    """Represent a sticky note."""
+    '''Represent a sticky note.'''
     def __init__(self, user, position, content, id):
         self.user = user
         self.pos = position
@@ -26,7 +26,7 @@ class StickyNote(object):
         self.id = id
     @property
     def serialize(self):
-       """Return object data in easily serializeable format."""
+       '''Return object data in easily serializeable format.'''
        return {
            'user': self.user.serialize,
            'pos': self.pos.serialize,
@@ -36,7 +36,7 @@ class StickyNote(object):
 
 
 class Content(object):
-    """Abstract class representing the content of a sticky note."""
+    '''Abstract class representing the content of a sticky note.'''
     def get_content(self):
         raise NotImplementedError
     def set_content(self, content):
@@ -44,7 +44,7 @@ class Content(object):
 
 
 class TextContent(Content):
-    """Stores the text content of a sticky note as a string."""
+    '''Stores the text content of a sticky note as a string.'''
     def __init__(self, text):
         self.content = text
     def get_content(self):
@@ -54,14 +54,16 @@ class TextContent(Content):
 
 
 class Position(object):
-    """Stores the x, y, and z coordinates of a sticky note."""
+    '''Stores the x, y, and z coordinates of a sticky note.'''
     def __init__(self, x, y, z):
         self.x = x
         self.y = y
         self.z = z
+    def __str__(self):
+        return 'Position(' + self.x + ', ' + self.y + ', ' + self.z + ')'
     @property
     def serialize(self):
-       """Return object data in easily serializeable format."""
+       '''Return object data in easily serializeable format.'''
        return {
            'x': self.x,
            'y': self.y,

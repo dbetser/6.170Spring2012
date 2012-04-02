@@ -10,9 +10,19 @@
       <button id="note-submit">Submit</button>
     </form>
   </div>
+  <div id="editNote" style="display:none">
+    <form action="/edit_sticky" method="post" id="edit-note-form">
+      <label for="edit-note-body">Text of the note:</label>
+      <textarea name="edit-note-body" id="edit-note-body"></textarea>
+      <input type="hidden" id="sticky-to-update" value="-1" />
+      <button id="edit-note-submit">Update</button>
+  </form>
+  </div>
   <div id="sticky_pane">
     {% for sticky in sticky_objects %}
-      <div class="ui-widget-content" id="sticky{{ sticky.id }}">
+      <div class="ui-widget-content" id="sticky_{{ sticky.id }}"
+           style="position: relative; z-index: {{ sticky.pos.z }};
+                  left:{{ sticky.pos.x }}px; top: {{ sticky.pos.y }}px;">
         <p> {{ sticky.content.get_content() }} </p>
         <button class="editButton" id="edit_{{ sticky.id }}">Edit</button>
         <button class="deleteButton" id="delete_{{ sticky.id }}">Delete</button>
