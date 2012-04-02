@@ -23,7 +23,7 @@
       <div class="ui-widget-content sticky-note" id="sticky_{{ sticky.id }}"
            style="z-index: {{ sticky.pos.z }};
                   left:{{ sticky.pos.x }}px; top: {{ sticky.pos.y }}px;">
-        <p> {{ sticky.content.get_content() }} </p>
+        <p> {{ sticky.content.get_content() | safe}} </p>
         <button class="editButton" id="edit_{{ sticky.id }}">Edit</button>
         <button class="deleteButton" id="delete_{{ sticky.id }}">Delete</button>
       </div>

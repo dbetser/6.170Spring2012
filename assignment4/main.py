@@ -21,7 +21,7 @@ app.debug = True
 app.secret_key = 'secretkey'
 
 
-# Whenever a user connects, we load the database.
+# Whenever a user connects, load the database.
 @app.before_request
 def before_request():
     g.db = shelve.open(app.config['DATABASE'], writeback=True)
@@ -35,6 +35,7 @@ def teardown_request(exception):
 @app.route('/index.html')
 @app.route('/')
 def index():
+    '''Returns the view for the main page of the application.'''
     stickies = []
     if session.get('logged_in') is not None:
         username = session.get('username')
@@ -91,13 +92,9 @@ def logout():
     flash('You were logged out.')
     return redirect(url_for('index'))
 
-def get_serialized_stickies_for_user(username):
-    return jsonify(
-        sticky_objects=[
-            x.serialize for x in g.db['stickies_for_username'].get(username)])
-
 @app.route('/add_sticky', methods=['POST'])
 def add_sticky():
+    '''Adds a new sticky based on post parameters.'''
     if not session.get('logged_in'):
         abort(401)
     user = g.db['userinfo_map'].get(session['username'])
@@ -127,6 +124,7 @@ def remove_sticky_from_stickylist(stickies, id):
 
 @app.route('/delete_sticky', methods=['POST'])
 def delete_sticky():
+    '''Deletes a sticky based on post parameters.'''
     if not session.get('logged_in'):
         abort(401)
     msg = remove_sticky_from_stickylist(
@@ -139,6 +137,7 @@ def delete_sticky():
 
 @app.route('/get_sticky_content', methods=['POST'])
 def get_sticky_content():
+    '''Returns the content of a sticky with the given id.'''
     if not session.get('logged_in'):
         flash('You must be logged in to use this functionality.')
         abort(401)
@@ -161,6 +160,7 @@ def get_sticky_text(stickies, id):
 
 @app.route('/move_sticky', methods=['POST'])
 def move_sticky():
+    '''Moves a sticky based on post parameters.'''
     if not session.get('logged_in'):
         abort(401)
     update_sticky(
@@ -194,10 +194,9 @@ def update_sticky(stickies, id, new_text, new_pos):
 
 @app.route('/edit_sticky', methods=['POST'])
 def edit_sticky():
-    print "edit sticky reached", session
+    '''Edits a sticky based on post parameters.'''
     if not session.get('logged_in'):
         abort(401)
-    print request.form['note_id']
     update_sticky(
         g.db['stickies_for_username'].get(session['username']),
         request.form['note_id'], request.form['note_body'], None

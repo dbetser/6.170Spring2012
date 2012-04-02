@@ -25,14 +25,14 @@
 \subsection{Object Models}
 The object model for the problem domain is included in the figure below. The problem domain object model demonstrates the system that must be built. 
 
-The top-level object is a \texttt{Game}, which includes the concepts of \texttt{Player}s, a \texttt{Board}, a play \texttt{Mode}, a \texttt{GameStateHistory} for undo/redoing moves, and \texttt{GameStats} to store things like the number of boxes allocated to each player.
+Within the application, \texttt{User}s have a set of \texttt{Note}s. Every user has a \texttt{UserId}, \texttt{Password}, and \texttt{Username}.  Every Note has a \texttt{NoteId}, \texttt{Position}, and some type of \texttt{Content}. For this application, every Note only contains an instance of \texttt{TextContent}, though an extension could allow a Note to contain other types of Content, such as an image.
 \begin{center}
 \includegraphics[width=5in]{dot/obmod.png}
 \label{fig:ob1} 
 \end{center}
 
 \subsection{State Machines}
-The following state machine describes how the state of the application changes as game play progresses.
+The following state machine describes how the state of the application changes as a user uses the sticky note application. The user is either logged in or out, and can only add, edit, or delete stickies from the logged-in state.
 \begin{center}
 \includegraphics[width=7in]{dot/statediagram.png}
 \label{fig:sm1} 
@@ -41,100 +41,85 @@ The following state machine describes how the state of the application changes a
 \section{Design Notes}
 \subsection{Key Challenges}
 \begin{itemize}
-\item Displaying/deleting notes\\
-
-\item Does a user need to be logged in to create stickies?\\
-
+\item Does a user need to be logged in to create stickies? If not, should all ``current stickies'' be saved upon login?\\
+At first, I thought it would make the most sense to allow users to create stickies without being logged in. Then, upon login, all the current notes would be saved persistently for that user. This scheme was more complex than the final decision, which was to only allow users to edit stickies upon login.
 \item Editing notes on the fly or using a popup dialog.\\
-
-\item Storing the state in the frontend for a dirty sticky.\\
-
-\item Save all ``current stickies'' on login.\\
-
+It would have been possible to pop up a dialog box whenever a user wanted to edit or add a new sticky. However, this is less usable, as it covers the window and prevents the user from interacting with the rest of the interface. Therefore, I decided to open up a textarea that allowed for editing but didn't prevent interaction with the rest of the functionalities of the application.
 \item Status of server -- should it be stateless?\\
-
+In class we discussed that the paradigm for servers is for them to be stateless. For this reason, I refrained from storing a map of logged-in statuses for users in the server and let flask deal with session management on a per-request basis.
 \end{itemize}
 
 \subsection{Issues Arising}
 \begin{itemize}
-\item Implementing login -- using flask-login module or not. \\
-too buggy
-\item Using ajax for adding stickies
+\item Implementing login by using the flask-login module. \\
+Flask-login proved to be fairly hard to use correctly. Adding a registration capability is outside the scope of flask-login, and combining registration with authentication was not trivial. It proved much simpler and clearer to use session variables to represent a user's login state.
+\item Stickies ``jump'' upon save.\\
+For some reason, after stickies are dragged, when the new position is saved and then reloaded, the sticky often ``jumps'' to the left and downwards. I think this is because I am not taking into account the size of the sticky itself when saving its position. Time pressures of this project prevented debugging this, but fortunately, it does not detract much from the user's ability to move stickies at will.
 \end{itemize}
 
 \subsection{Critique}
-This project implemented separation of concerns by using the MVC design pattern. Each module created had a clear specification and purpose, so the code itself was organized fairly well. All view/controller code was stored in \texttt{reversi.js}, while all model code was stored in \texttt{reversi\_model.js}. All code relating to updating the user interface was called from the view or controller; the model always called these view updates using callback function passed in to the model.
+This project implemented separation of concerns by using the MVC design pattern. Each module created had a clear specification and purpose, so the code itself was organized fairly well. All controller code was stored in \texttt{stickies.js}, while all model objects were stored in \texttt{stickies\_model.py}. These objects followed directly from the object model in this document.
 
-The \texttt{GameStateData} data structure was particularly succinct at storing all of the information required to store and restore the state of a game during undo/redo.
+The interface is not particularly visually appealing, and the stickies are somewhat garishly yellow, but it meets the specifications. If I had more time, I would improve the CSS styling of the interface to make it more aesthetically pleasing.
 
-The implementation chose more sophisticated notions of undo/redo than required; for instance, one way to view ``undo''ing is that before a user submits a selected box, he can switch his selected box. In addition to implementing that form of undo, I also implemented a chain-based undo where previous states of the board could be restored from any given state.
-
-The implementation also allowed a user to change play mode in the middle of the game, something that many implementations for this project did not.
 \section{Specification}
 \subsection{Overview}
 This application is a web application written using HTML/CSS/JavaScript on the client-side, and the Python Flask framework (with shelve for persistent storage) on the server side.
 
-In addition to an implementation of the general game logic, the project included an interactive game board that allowed up to two human players to play the game. The application allows users to undo and redo moves such that previous states of the board are restored, and alerts the users when the game has finished, displaying who won the game. Two modes of play are supported and a game can be aborted/restarted at any point during game play.
+The application allows users to store and edit stickies containing text, and to access these stickies from any machine using their login information.
 
 \subsection{Key Features}
 The key features of this implementation of the 6.170 Network Stickies implementation are:
 \begin{itemize}
-\item Ability for users to access stickies from any browser.
-\item Smooth dragging feature to arrange stickies anywhere in the field of view.
-\item 
+\item Users can access stickies their stickies from any browser. Login information is stored in the backend so the scheme is tolerant of browser failures.
+\item Smooth dragging allows users to arrange stickies anywhere in the field of view simply by dragging the mouse. The position of stickies on the page is stored across sessions.
+\item Features on the page are visible when applicable, and hidden when not. For instance, the when a user clicks ``Edit'' on a sticky, the editing box appears for the user to edit. There are no popups or alerts, which generally hinder visibility.
+\item An external script \texttt{init\_db.py} allows for refreshing the database for testing purposes.
+\item The size of the sticky is dependent on the amount of text entered, making the application more flexible.
+\item Passwords are not stored in the backend in cleartext, making the application more secure.
 \end{itemize}
 
 \subsection{User Manual}
-The running application can be accessed at http://web.mit.edu/~dbetser/www/6.170/assignment3/reversi.html.
+The running application can be accessed at https://courses.csail.mit.edu/6.170/sp12/students/dbetser/assignment4/index.fcgi .
 
-The desired type of play should be selected from the dropdown menu.
+A new user should be registered by clicking on the ``Register'' link, and filling in the desired name and password. Thereafter, the user can login with that same name and password to access stickies.
 
-At any point, the ``Restart'' button can be clicked in order to return to the initial board state and start afresh. This effectively aborts the current game and starts one from fresh.
+New stickies are added via the ``Add Sticky'' button. The text of the sticky should be entered into the box that appears, and submitted by clicking the box called ``Submit''.
 
-With 1-player play, the black player begins. The desired box is selected by clicking, whereupon it is highlighted in purple. Only valid moves can be selected in this way. The selected box can be changed until the user is ready to submit the move, at which point the ``Submit'' button should be clicked, or the ``enter'' key pressed.
-
-Upon submitting the move, the turn switches to computer, which places a marker, switching play back to the human player. With 2-player mode, the turn instead switches to the white player, who is also human. At any point, moves can be undone and redone as long as there are moves to undo/redo.
-
-When the game ends, either because all boxes are occupied or no more valid moves are possible, the outcome is displayed to the user beneath the board.
 
 \section{Implementation}
 
 \subsection{Module Dependency Diagram}
-This code's modules can be seen in the context of the Model-View-Controller framework, which is roughly related to how the files were defined. The \texttt{reversi.js} file contains the View and Controller, while \texttt{reversi\_model.js} contains the model, which includes the \texttt{Game} ADT as well as the \texttt{GameStateData} ADT. Concerns are separated cleanly in that no code in the model touches anything in the user interface. Whenever the model needs to communicate a change in state to the View, a callback function is used such that a function in the view refreshes the View state. The Controller consists of functions that handle events in the UI, such as the hover and click handling functions. 
+This code's modules can be seen in the context of the Model-View-Controller framework, which is roughly related to how the files were defined. The \texttt{stickies.js} file contains the Controller, while \texttt{stickies\_model.py} contains the model objects, which includes the objects defined in the object model above. Concerns are separated cleanly in that no code in the model touches anything in the user interface. The model is further stored in a database where user information is kept persistently. The \texttt{main.py} serves to wrap the database and return views to the client upon requests from the browser. The Controller consists of functions that handle events in the UI, such as the form submission and click handling functions. The controller is responsible for sending POST requests to the flask application server.
 
-This code is written using the jQuery library for DOM handling and convenience functions. The figure below shows the module dependency diagram.
+This code is written using the jQuery and jQuery UI libraries for DOM handling and convenience functions. The figure below shows the module dependency diagram.
 
 \begin{center}
-\includegraphics[width=350pt]{dot/moddepdiagram.png}
+\includegraphics[width=350pt]{dot/moddep.png}
 \label{fig:ob2} 
 \end{center}
 \subsection{Code Notes}
-The most major hack that was included in the project deals with updating the player whose turn it is during undo/redo moves. One of the problems with my implementation was that for the two different types of play (versus computer and versus human), the current player during undo needed to be switched for versus human play and needed to stay the same for versus computer play. I included a hack to manually switch the current player in the \texttt{getCurrentBoardState} function based on the type of play. This allowed the current player to be correctly displayed even after a series of undos and redos.
+Because I used the draggable jQuery UI module, I needed to 
 
-Another note is regarding the representation of markers in the UI. In order to present a box's state, I wanted to be able to include a round circle representing the marker that would be used in a real Othello game. However, to do this, I needed to figure out how to change the CSS to include the image of the circle. Using CSS sprites seemed to do the trick for that.
+Another interesting construct that appears in my JavaScript code has to do with using AJAX for adding stickies. At first, I was using form submission for adding stickies. However, the assignment prescribed that AJAX was used for user interaction, so I modified the JavaScript controller code to use POST requests for sticky interaction. However, to update the view upon return of the POST requests, I needed to call:
+\begin{verbatim}
+window.location.replace($SCRIPT_ROOT);
+\end{verbatim}
+which is not ideal.
+
 \section{Testing}
 
 \subsection{Test Plan}
-To test the application, the HTML was validated to ensure standards compliance. Lint was run to avoid poor programming constructs.
+To test the application, the HTML was validated to ensure standards compliance. Pychecker was run to remove style issues.
 
-The testing for this project was mostly manual. The below was done in both the Firefox and Chrome browsers.
+A test suite was developed for the application using Python unit testing. The tests in the file \texttt{stickies\_test.py} cover the functionalities of registration, login, adding, editing, and deleting stickies, and logout. They also ensure that a 401 status is returned when a non-logged-in user tries to access a page requiring login.
 
-I developed a number of test cases that ensured that the game functioned as specified.
-
-\subsection{Test Cases}
-To test the board itself, I did the following:
-\begin{itemize}
-\item Play the game until both players have won, in the versus computer and versus human modes. Ensure that the outcome message is displayed appropriately in all cases (black wins, white wins, tie).
-\item Ensure that refreshing resets all state during any other time of game play.
-\item Ensure that once a first box is selected, another box can be selected without affecting the model.
-\item Test undo/redo with both modes to ensure that the board, statistics, and hovering marker change accordingly.
-\item Test various combinations of undo/redo to ensure that no bug occurs when restoring state.
-\end{itemize}
+In addition, manual testing was done to ensure that the application functioned as specified.
 
 \subsection{Rationale and Conclusions}
-This project fulfills the requirements of the assignment. The application runs as desired, and even implements undo/redo in a sophisticated and extensible way. Because I used extra slack days, I was able to debug to create a much cleaner and smoother product than I would have otherwise!
+This project fulfills the requirements of the assignment. The application runs as desired, is well-commented, and demonstrates separation of concerns.
 
-Many of the design decisions implemented made the interface easier and cleaner to use, which improved the overall user experience.
+Many of the design decisions implemented made the interface easier and cleaner to use, which improved the overall user experience. However, there is more work to be done to improve the appearance of the application, but overall it served as a good learning experience for using the Python flask framework.
 
 \end{document}
 
