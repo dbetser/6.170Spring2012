@@ -60,7 +60,7 @@ For some reason, after stickies are dragged, when the new position is saved and 
 \subsection{Critique}
 This project implemented separation of concerns by using the MVC design pattern. Each module created had a clear specification and purpose, so the code itself was organized fairly well. All controller code was stored in \texttt{stickies.js}, while all model objects were stored in \texttt{stickies\_model.py}. These objects followed directly from the object model in this document.
 
-The interface is not particularly visually appealing, and the stickies are somewhat garishly yellow, but it meets the specifications. If I had more time, I would improve the CSS styling of the interface to make it more aesthetically pleasing.
+The interface is not particularly visually appealing, and the stickies are somewhat garishly yellow, but it meets the specifications. If I had more time, I would improve the CSS styling of the interface to make it more aesthetically pleasing. I would also prefer to fix the issue where stickies ``jump'' upon save.
 
 \section{Specification}
 \subsection{Overview}
@@ -80,12 +80,20 @@ The key features of this implementation of the 6.170 Network Stickies implementa
 \end{itemize}
 
 \subsection{User Manual}
-The running application can be accessed at https://courses.csail.mit.edu/6.170/sp12/students/dbetser/assignment4/index.fcgi .
+The running application can be accessed at https://courses.csail.mit.edu/6.170/sp12/students/dbetser/
+assignment4/index.fcgi .
 
 A new user should be registered by clicking on the ``Register'' link, and filling in the desired name and password. Thereafter, the user can login with that same name and password to access stickies.
 
 New stickies are added via the ``Add Sticky'' button. The text of the sticky should be entered into the box that appears, and submitted by clicking the box called ``Submit''.
 
+Existing stickies are edited by clicking the ``Edit'' button on the sticky, updating the text that appears near the top of the window, and clicking the Update button.
+
+Stickies are deleted by clicking the ``Delete'' button for that sticky.
+
+To move a sticky, merely click on it and drag it to its new position. Stickies can be stacked vertically as well.
+
+No functionalities can be accessed without logging in first.
 
 \section{Implementation}
 
@@ -95,17 +103,17 @@ This code's modules can be seen in the context of the Model-View-Controller fram
 This code is written using the jQuery and jQuery UI libraries for DOM handling and convenience functions. The figure below shows the module dependency diagram.
 
 \begin{center}
-\includegraphics[width=350pt]{dot/moddep.png}
+\includegraphics[width=400pt]{dot/moddep.png}
 \label{fig:ob2} 
 \end{center}
 \subsection{Code Notes}
-Because I used the draggable jQuery UI module, I needed to 
+I needed to set the position of a sticky based on the position stored in the database, which violated separation of concerns to some extent because CSS was stored in the HTML tag for each sticky.
 
-Another interesting construct that appears in my JavaScript code has to do with using AJAX for adding stickies. At first, I was using form submission for adding stickies. However, the assignment prescribed that AJAX was used for user interaction, so I modified the JavaScript controller code to use POST requests for sticky interaction. However, to update the view upon return of the POST requests, I needed to call:
+One interesting construct that appears in my JavaScript code has to do with using AJAX for adding stickies. At first, I was using form submission for adding stickies. However, the assignment prescribed that AJAX was used for user interaction, so I modified the JavaScript controller code to use POST requests for sticky interaction. However, to update the view upon return of the POST requests, I needed to call:
 \begin{verbatim}
 window.location.replace($SCRIPT_ROOT);
 \end{verbatim}
-which is not ideal.
+which seems to me is not ideal. I'm interested in hearing ideas for how to avoid this in the future.
 
 \section{Testing}
 
