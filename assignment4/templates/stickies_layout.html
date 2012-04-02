@@ -19,7 +19,7 @@
       {% if session.logged_in %}
         Welcome, {{ session.username }}! | <a href="{{ url_for('logout') }}">log out</a>
       {% else %}
-        You are not logged in | <a href="{{ url_for('login') }}">log in</a>
+        You are not logged in. Please login to add stickies. | <a href="{{ url_for('login') }}">log in</a>
         | <a href="{{ url_for('register') }}">register</a>
       {% endif %}
       {% for message in get_flashed_messages() %}
