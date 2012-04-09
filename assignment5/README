@@ -1,0 +1,13 @@
+Please place your solution to assignment 5, "Adventure Game," into this folder.
+
+The assigment can be found at http://courses.csail.mit.edu/6.170/sp12/course/assignment5/assignment5.html
+
+The application entry point should be a variable called "app" in a file called "main.py"
+
+Remember to set "app.debug = True" to get debug messages.
+
+Put your databases in the folder labeled "db" so that the auto-deploy server has permission to read and write to them.
+
+To access the auto-deployed website, go to http://courses.csail.mit.edu/6.170/sp12/students/ and then browse to the assignment5 folder of your repository. click on the file called "index.fcgi" to start the web server.
+
+If you need extra python modules installed for you application, please contact 6170-staff.
