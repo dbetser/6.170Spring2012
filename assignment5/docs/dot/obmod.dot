@@ -1,0 +1,30 @@
+digraph ProblemOM {
+
+node [shape=box] User;
+node [shape=box] Note;
+node [shape=box] Position;
+node [shape=box] Coordinate;
+node [shape=box] TextContent;
+node [shape=box] Content;
+node [shape=box] StickyId;
+node [shape=box] LoggedInUser;
+node [shape=box] AnonymousUser;
+node [shape=box] UserId;
+node [shape=box] Username;
+node [shape=box] Password;
+
+node [shape=point] joiner;
+
+User -> Note [label="note", taillabel="!"];
+Note -> Position [label="pos", headlabel="!"];
+Position -> Coordinate [label="x, y, z", headlabel="!"];
+Note -> StickyId [label="id", headlabel="!", taillabel="!"];
+LoggedInUser -> joiner [arrowhead="none"];
+AnonymousUser -> joiner [arrowhead="none"];
+joiner -> User [arrowhead="onormal"];
+LoggedInUser -> UserId [label="id", taillabel="!", headlabel="!"];
+LoggedInUser -> Username [label="uname", taillabel="!", headlabel="!"];
+LoggedInUser -> Password [label="password", headlabel="!"];
+Note -> Content [label="content   ", headlabel="!"];
+TextContent-> Content [arrowhead="onormal"];
+};
