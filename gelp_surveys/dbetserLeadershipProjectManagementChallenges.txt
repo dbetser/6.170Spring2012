@@ -1,0 +1,12 @@
+Dina Betser
+
+Project Leadership Challenges: Team YouROP
+
+All of the members on team YouROP were equally committed to the project which made working in the team a wonderful experience. All team members contributed, and did what they committed to in a timely fashion. We kept a running to-do list and kept it updated with things that needed to be done. This list can be found at bit.ly/team4ganttchart.
+
+During team meetings, as we brainstormed to-do items, we always wrote them down and assigned them immediately, and each of us took on an approximately equal amount of work.
+
+Each of us got a chance to focus on different parts of the project, though we all touched each other's code, so gained experience in all aspects of the project. Erika mostly focused on backend, though I worked a fair amount with the models and database, Nidhi worked on integrating with the wtforms and visualization modules, though I ended up fixing bugs in those areas so became familiar with that as well.
+
+Team 4 was organized and prompt, and that made working on the project a very enjoyable experience.
+
