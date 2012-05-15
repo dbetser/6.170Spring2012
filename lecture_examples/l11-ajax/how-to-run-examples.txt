@@ -1,9 +1,0 @@
-How to run Ajax examples
--- install python
--- install flask in your python environment
--- cd to this directory
--- execute the command
-	python runserver.py
--- you should now have a server running at http://localhost:5000
--- load http://localhost:5000/static/ajax-examples.html
--- or for factorial, load http://localhost:5000//static/continuation-factorial.html
